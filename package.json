@@ -1,0 +1,236 @@
+{
+  "name": "cuovare",
+  "displayName": "Cuovare - Advanced AI Coding Assistant",
+  "description": "The most beautiful and advanced AI coding assistant with multi-provider support, MCP integration, and intelligent codebase understanding",
+  "version": "0.0.1",
+  "publisher": "cuovare",
+  "icon": "resources/icon.png",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "assistant",
+    "coding",
+    "copilot",
+    "openai",
+    "anthropic",
+    "mcp"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "cuovare.openChat",
+        "title": "Open Cuovare Chat",
+        "category": "Cuovare",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "cuovare.openSettings",
+        "title": "Open Settings",
+        "category": "Cuovare",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "cuovare.explainCode",
+        "title": "Explain Selected Code",
+        "category": "Cuovare",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "cuovare.generateCode",
+        "title": "Generate Code",
+        "category": "Cuovare",
+        "icon": "$(wand)"
+      },
+      {
+        "command": "cuovare.reviewCode",
+        "title": "Review Code",
+        "category": "Cuovare",
+        "icon": "$(search-view-icon)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cuovare",
+          "title": "Cuovare",
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "cuovare": [
+        {
+          "type": "webview",
+          "id": "cuovare.chatView",
+          "name": "AI Assistant",
+          "when": "true"
+        }
+      ]
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "cuovare.explainCode",
+          "when": "editorHasSelection",
+          "group": "cuovare"
+        },
+        {
+          "command": "cuovare.generateCode",
+          "group": "cuovare"
+        },
+        {
+          "command": "cuovare.reviewCode",
+          "when": "editorHasSelection",
+          "group": "cuovare"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "cuovare.openSettings",
+          "when": "view == cuovare.chatView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Cuovare",
+      "properties": {
+        "cuovare.defaultProvider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "anthropic",
+            "groq",
+            "grok",
+            "openrouter"
+          ],
+          "default": "openai",
+          "description": "Default AI provider to use (will auto-select first available if this provider has no API key)"
+        },
+        "cuovare.selectedModels": {
+          "type": "object",
+          "description": "Selected model for each AI provider",
+          "properties": {
+            "openai": {
+              "type": "string",
+              "description": "Selected OpenAI model"
+            },
+            "anthropic": {
+              "type": "string",
+              "description": "Selected Anthropic model"
+            },
+            "groq": {
+              "type": "string",
+              "description": "Selected Groq model"
+            },
+            "grok": {
+              "type": "string",
+              "description": "Selected Grok model"
+            },
+            "openrouter": {
+              "type": "string",
+              "description": "Selected OpenRouter model"
+            }
+          },
+          "default": {}
+        },
+        "cuovare.mcpServers": {
+          "type": "array",
+          "description": "MCP (Model Context Protocol) servers configuration",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": []
+        },
+        "cuovare.maxContextFiles": {
+          "type": "number",
+          "default": 50,
+          "description": "Maximum number of files to include in context"
+        },
+        "cuovare.autoIncludeOpenFiles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically include open files in context"
+        },
+        "cuovare.chatSessions": {
+          "type": "array",
+          "description": "Saved chat sessions (managed automatically)",
+          "default": []
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src/**/*.ts test/**/*.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vscode-test",
+    "unit-tests": "node test/runUnitTests.js",
+    "test:watch": "nodemon --exec 'pnpm run unit-tests' --watch src --watch test --ext ts",
+    "test:coverage": "nyc pnpm run unit-tests",
+    "clean": "rimraf out coverage .vscode-test",
+    "reset": "pnpm run clean && pnpm install",
+    "build": "pnpm run compile",
+    "package": "vsce package",
+    "dev": "pnpm run watch"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "highlight.js": "^11.10.0",
+    "marked": "^14.1.3",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.100.0",
+    "@types/ws": "^8.5.13",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2",
+    "bc": "^0.1.1",
+    "eslint": "^9.25.1",
+    "glob": "^11.0.2",
+    "mocha": "^11.5.0",
+    "nodemon": "^3.1.10",
+    "nyc": "^17.1.0",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,141 @@
+name: PR Quality Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Check for breaking changes
+      run: |
+        # Add any breaking change detection logic here
+        echo "Checking for breaking changes..."
+        
+    - name: Validate commit messages
+      uses: wagoid/commitlint-github-action@v5
+      with:
+        configFile: '.commitlintrc.json'
+        
+    - name: Check PR title
+      uses: amannn/action-semantic-pull-request@v5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Check file changes
+      run: |
+        # Ensure critical files haven't been accidentally modified
+        if git diff --name-only origin/main...HEAD | grep -E "(package\.json|tsconfig\.json)" > /dev/null; then
+          echo "⚠️  Critical configuration files changed. Please review carefully."
+        fi
+        
+    - name: Check code formatting
+      run: |
+        pnpm run format
+        if ! git diff --quiet; then
+          echo "❌ Code is not properly formatted. Run 'pnpm run format' to fix."
+          exit 1
+        fi
+        
+    - name: Test coverage check
+      run: |
+        pnpm run test:coverage
+        # Check if coverage meets minimum threshold
+        COVERAGE=$(npx nyc report --reporter=text-summary | grep "Lines" | grep -o '[0-9.]*%' | head -1 | sed 's/%//')
+        if (( $(echo "$COVERAGE < 85" | bc -l) )); then
+          echo "❌ Code coverage ($COVERAGE%) is below minimum threshold (85%)"
+          exit 1
+        fi
+        echo "✅ Code coverage: $COVERAGE%"
+        
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Run security audit
+      run: pnpm audit --audit-level moderate
+      
+    - name: Check for outdated dependencies
+      run: |
+        OUTDATED=$(pnpm outdated --format json | jq 'length')
+        if [ "$OUTDATED" -gt 10 ]; then
+          echo "⚠️  Many outdated dependencies detected. Consider updating."
+        fi
+        
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Build extension
+      run: pnpm run vscode:prepublish
+      
+    - name: Check bundle size
+      run: |
+        pnpm add -g @vscode/vsce
+        vsce package
+        VSIX_SIZE=$(ls -la *.vsix | awk '{print $5}')
+        VSIX_SIZE_MB=$((VSIX_SIZE / 1024 / 1024))
+        
+        echo "📦 Extension size: ${VSIX_SIZE_MB}MB"
+        
+        if [ "$VSIX_SIZE_MB" -gt 50 ]; then
+          echo "❌ Extension size (${VSIX_SIZE_MB}MB) exceeds 50MB limit"
+          exit 1
+        fi
+        
+        echo "✅ Extension size is acceptable"

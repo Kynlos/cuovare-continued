@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+out/
+dist/
+*.vsix
+
+# Testing
+coverage/
+.nyc_output/
+
+# VS Code
+.vscode-test/
+.vscode/settings.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Test artifacts
+test-results/
+test-workspace/

@@ -1,0 +1,436 @@
+/* 
+ * Cuovare - Professional AI Assistant UI
+ * Modern, minimalist design with enhanced UX
+ */
+
+/* Base Styles and Resets */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgb(71 85 105 / 0.6);
+    border-radius: 3px;
+    border: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(71 85 105 / 0.8);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Selection */
+::selection {
+    background: rgb(59 130 246 / 0.3);
+    color: inherit;
+}
+
+/* Focus Management */
+:focus {
+    outline: 2px solid rgb(59 130 246 / 0.5);
+    outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* File Reference Pills */
+.file-reference {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgb(30 58 138 / 0.1);
+    border: 1px solid rgb(30 58 138 / 0.2);
+    color: rgb(147 197 253);
+    border-radius: 0.75rem;
+    font-size: 0.8125rem;
+    font-family: var(--font-mono, monospace);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.file-reference:hover {
+    background: rgb(30 58 138 / 0.2);
+    border-color: rgb(30 58 138 / 0.3);
+}
+
+.file-reference button {
+    background: none;
+    border: none;
+    color: rgb(248 113 113);
+    cursor: pointer;
+    padding: 0;
+    margin-left: 0.25rem;
+    font-size: 0.875rem;
+    transition: color 0.2s ease;
+}
+
+.file-reference button:hover {
+    color: rgb(239 68 68);
+}
+
+/* Code Block Enhancements */
+.code-block-container {
+    position: relative;
+    margin: 1rem 0;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: rgb(15 23 42);
+    border: 1px solid rgb(51 65 85 / 0.3);
+}
+
+.code-block-container pre {
+    margin: 0;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow-x: auto;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: rgb(226 232 240);
+}
+
+.code-block-container code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* Code Action Buttons */
+.code-actions {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    gap: 0.375rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.code-block-container:hover .code-actions {
+    opacity: 1;
+}
+
+.code-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    background: rgb(51 65 85 / 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgb(71 85 105 / 0.5);
+    color: rgb(148 163 184);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+}
+
+.code-action-btn:hover {
+    background: rgb(59 130 246);
+    border-color: rgb(59 130 246);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgb(0 0 0 / 0.2);
+}
+
+.code-action-btn:active {
+    transform: translateY(0);
+}
+
+/* Inline Code */
+code:not(pre code) {
+    background: rgb(51 65 85 / 0.4);
+    color: rgb(147 197 253);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid rgb(51 65 85 / 0.3);
+}
+
+/* Autocomplete Dropdown */
+.autocomplete-dropdown {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    margin-bottom: 0.5rem;
+    background: rgb(30 41 59 / 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgb(51 65 85 / 0.5);
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 10px 10px -5px rgb(0 0 0 / 0.2);
+    max-height: 12rem;
+    overflow-y: auto;
+    z-index: 50;
+}
+
+.autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-bottom: 1px solid rgb(51 65 85 / 0.2);
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.selected {
+    background: rgb(30 58 138 / 0.2);
+    color: rgb(147 197 253);
+}
+
+.autocomplete-item:first-child {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+}
+
+.autocomplete-item:last-child {
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Loading Animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.4;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 500;
+    font-size: 0.875rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+    z-index: 1000;
+    animation: slideInRight 0.3s ease-out;
+    backdrop-filter: blur(8px);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification.success {
+    background: rgb(34 197 94 / 0.9);
+    border: 1px solid rgb(34 197 94 / 0.3);
+}
+
+.notification.error {
+    background: rgb(239 68 68 / 0.9);
+    border: 1px solid rgb(239 68 68 / 0.3);
+}
+
+.notification.warning {
+    background: rgb(245 158 11 / 0.9);
+    border: 1px solid rgb(245 158 11 / 0.3);
+    color: rgb(15 23 42);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .code-actions {
+        position: static;
+        opacity: 1;
+        justify-content: flex-end;
+        margin-top: 0.75rem;
+        padding: 0 1rem 1rem;
+    }
+    
+    .code-block-container pre {
+        padding-bottom: 0;
+    }
+    
+    .file-reference {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .autocomplete-dropdown {
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .code-action-btn {
+        border-width: 2px;
+    }
+    
+    .file-reference {
+        border-width: 2px;
+    }
+    
+    .autocomplete-item:hover,
+    .autocomplete-item.selected {
+        background: rgb(59 130 246 / 0.3);
+        border: 1px solid rgb(59 130 246);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .fade-in,
+    .slide-in {
+        animation: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .code-actions,
+    .file-reference button,
+    .autocomplete-dropdown {
+        display: none !important;
+    }
+    
+    .code-block-container {
+        border: 1px solid #ccc;
+        background: white;
+    }
+    
+    .code-block-container pre {
+        color: black;
+    }
+    
+    .file-reference {
+        color: black;
+        background: #f5f5f5;
+        border: 1px solid #ccc;
+    }
+}
+
+/* Force Hardware Acceleration for Smooth Animations */
+.code-action-btn,
+.file-reference,
+.autocomplete-item,
+.notification {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Ensure proper stacking context */
+.code-block-container {
+    isolation: isolate;
+}
+
+.autocomplete-dropdown {
+    isolation: isolate;
+}
+
+/* Better focus indicators for accessibility */
+.code-action-btn:focus-visible {
+    outline: 2px solid rgb(59 130 246);
+    outline-offset: 2px;
+}
+
+.autocomplete-item:focus-visible {
+    outline: 2px solid rgb(59 130 246);
+    outline-offset: -2px;
+}
+
+.file-reference button:focus-visible {
+    outline: 2px solid rgb(239 68 68);
+    outline-offset: 2px;
+}
