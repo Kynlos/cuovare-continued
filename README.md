@@ -33,11 +33,13 @@
 - **Mobile-First** - Works perfectly in narrohttps://github.com/Kynlos/cuovarew sidebar widths
 
 ### 🔧 Advanced Capabilities
+- **Enhanced MCP Tool Support** - Universal tool execution across all AI providers
 - **@ File Referencing** - `@filename` or `@filename:1-150` for precise context
 - **Agentic Code Actions** - Copy, apply, and create files directly from chat
+- **Parallel Tool Execution** - Run multiple tools simultaneously with smart validation
+- **Auto-Tool Detection** - AI automatically discovers and uses available tools
 - **Chat History** - Persistent sessions across VS Code restarts
-- **MCP Integration** - Model Context Protocol for extensible tool support
-- **Streaming Responses** - Real-time AI responses (coming soon)
+- **Real-time Server Monitoring** - Health status and auto-reconnection for MCP servers
 
 ### 🛡️ Security & Privacy
 - **Secure API Key Storage** - Uses VS Code's encrypted storage
@@ -219,26 +221,53 @@ See [TESTING.md](docs/TESTING.md) for detailed testing information.
 }
 ```
 
-### Model Context Protocol (MCP)
+### Enhanced Model Context Protocol (MCP)
 
-Cuovare supports MCP servers for extending capabilities:
+Cuovare features a completely overhauled MCP implementation with universal tool support:
 
+#### Basic Configuration
 ```json
 {
   "cuovare.mcpServers": [
     {
-      "name": "File System",
+      "name": "Filesystem Server",
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem", "/path/to/project"]
+      "args": ["@modelcontextprotocol/server-filesystem", "/path/to/workspace"],
+      "autoReconnect": true
     },
     {
-      "name": "Git Tools", 
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-git"]
+      "name": "Database Server",
+      "command": "python",
+      "args": ["-m", "mcp_server_postgres"],
+      "env": {
+        "DATABASE_URL": "postgresql://user:pass@localhost/db"
+      },
+      "autoReconnect": true
     }
-  ]
+  ],
+  "cuovare.toolsEnabled": true,
+  "cuovare.autoExecuteTools": true,
+  "cuovare.maxConcurrentToolExecutions": 5,
+  "cuovare.toolExecutionTimeout": 30000
 }
 ```
+
+#### Tool Support by Provider
+- **OpenAI**: Full function calling with `tools` and `tool_choice`
+- **Anthropic**: Native tool use with `input_schema` validation
+- **Groq**: Complete function calling support
+- **Grok**: Tool descriptions in system prompts
+- **OpenRouter**: Model-specific tool support detection
+
+#### Key Features
+- 🔧 **Universal Tool Support** across all AI providers
+- 🚀 **Parallel Execution** with configurable limits
+- 🎯 **Smart Validation** using input schemas
+- 💡 **Auto-Discovery** of tools from connected servers
+- 📊 **Health Monitoring** with real-time status
+- 🔄 **Auto-Reconnection** with intelligent backoff
+
+See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 
 ## 🎯 Roadmap
 

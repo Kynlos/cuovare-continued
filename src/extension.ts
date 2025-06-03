@@ -3,6 +3,7 @@ import { ChatViewProvider } from './providers/ChatViewProvider';
 import { AIProviderManager } from './providers/AIProviderManager';
 import { FileContextManager } from './context/FileContextManager';
 import { MCPManager } from './mcp/MCPManager';
+import { ToolExecutionEngine } from './mcp/ToolExecutionEngine';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Cuovare AI Assistant is activating...');
@@ -11,13 +12,15 @@ export function activate(context: vscode.ExtensionContext) {
     const aiProviderManager = new AIProviderManager(context);
     const fileContextManager = new FileContextManager();
     const mcpManager = new MCPManager();
+    const toolExecutionEngine = new ToolExecutionEngine(mcpManager);
     
     // Initialize the chat view provider
     const chatViewProvider = new ChatViewProvider(
         context.extensionUri, 
         aiProviderManager, 
         fileContextManager,
-        mcpManager
+        mcpManager,
+        toolExecutionEngine
     );
 
     // Register the webview provider

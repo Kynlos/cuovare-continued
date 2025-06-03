@@ -152,20 +152,71 @@
             "type": "object",
             "properties": {
               "name": {
-                "type": "string"
+                "type": "string",
+                "description": "Unique name for the MCP server"
               },
               "command": {
-                "type": "string"
+                "type": "string",
+                "description": "Command to start the MCP server"
               },
               "args": {
                 "type": "array",
                 "items": {
                   "type": "string"
+                },
+                "description": "Arguments to pass to the command"
+              },
+              "env": {
+                "type": "object",
+                "description": "Environment variables for the server process",
+                "additionalProperties": {
+                  "type": "string"
                 }
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory for the server process"
+              },
+              "autoReconnect": {
+                "type": "boolean",
+                "default": true,
+                "description": "Automatically reconnect if the server disconnects"
               }
-            }
+            },
+            "required": ["name", "command"]
           },
-          "default": []
+          "default": [
+            {
+              "name": "Example Filesystem Server",
+              "command": "npx",
+              "args": ["@modelcontextprotocol/server-filesystem", "/path/to/allowed/directory"],
+              "autoReconnect": true
+            }
+          ]
+        },
+        "cuovare.toolsEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable MCP tool support in conversations"
+        },
+        "cuovare.autoExecuteTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically execute tools when AI requests them"
+        },
+        "cuovare.maxConcurrentToolExecutions": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Maximum number of tools that can execute simultaneously"
+        },
+        "cuovare.toolExecutionTimeout": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 5000,
+          "maximum": 120000,
+          "description": "Timeout for tool execution in milliseconds"
         },
         "cuovare.maxContextFiles": {
           "type": "number",
