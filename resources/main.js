@@ -25,6 +25,7 @@
     const settingsBtn = document.getElementById('settingsBtn');
     const historyBtn = document.getElementById('historyBtn');
     const newChatBtn = document.getElementById('newChatBtn');
+    const generateCommitBtn = document.getElementById('generateCommitBtn');
     const clearBtn = document.getElementById('clearBtn');
     const closeSettings = document.getElementById('closeSettings');
     const closeHistory = document.getElementById('closeHistory');
@@ -54,6 +55,7 @@
         settingsBtn.addEventListener('click', showSettings);
         historyBtn.addEventListener('click', showHistory);
         newChatBtn.addEventListener('click', createNewChat);
+        generateCommitBtn.addEventListener('click', generateCommitMessage);
         if (clearBtn) clearBtn.addEventListener('click', clearChat);
         closeSettings.addEventListener('click', hideSettings);
         closeHistory.addEventListener('click', hideHistory);
@@ -473,7 +475,7 @@
         vscode.postMessage({
             type: 'sendMessage',
             message: message,
-            fileReferences: fileReferences
+            fileReferences: fileReferences.map(ref => ref.fileName)
         });
 
         messageInput.value = '';
@@ -509,6 +511,26 @@
 
     function createNewChat() {
         vscode.postMessage({ type: 'newChat' });
+    }
+
+    function generateCommitMessage() {
+        // Show loading state on button
+        const btn = document.getElementById('generateCommitBtn');
+        const originalHTML = btn.innerHTML;
+        btn.classList.add('animate-pulse');
+        btn.innerHTML = `
+            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+        `;
+        
+        vscode.postMessage({ type: 'generateCommitMessage' });
+        
+        // Reset button after a delay (the backend will handle the actual completion)
+        setTimeout(() => {
+            btn.classList.remove('animate-pulse');
+            btn.innerHTML = originalHTML;
+        }, 3000);
     }
 
     function requestSettings() {
@@ -556,6 +578,15 @@
                 updateChatHistory(message.data);
                 setLoading(message.isLoading);
                 break;
+            case 'newMessage':
+                addNewMessage(message.message);
+                break;
+            case 'updateMessage':
+                updateMessage(message.message);
+                break;
+            case 'loadingState':
+                setLoading(message.isLoading);
+                break;
             case 'settings':
                 updateSettings(message.data);
                 break;
@@ -580,6 +611,30 @@
     function updateChatHistory(history) {
         chatHistory = history;
         renderChatMessages();
+    }
+
+    function addNewMessage(message) {
+        chatHistory.push(message);
+        const messageElement = createMessageElement(message);
+        chatMessages.appendChild(messageElement);
+        scrollToBottom();
+        highlightCode();
+    }
+
+    function updateMessage(message) {
+        // Find and update existing message in history
+        const messageIndex = chatHistory.findIndex(m => m.id === message.id);
+        if (messageIndex !== -1) {
+            chatHistory[messageIndex] = message;
+            
+            // Find and update DOM element
+            const existingElement = chatMessages.querySelector(`[data-message-id="${message.id}"]`);
+            if (existingElement) {
+                const newElement = createMessageElement(message);
+                existingElement.parentNode.replaceChild(newElement, existingElement);
+                highlightCode();
+            }
+        }
     }
 
     function setLoading(loading) {
@@ -687,6 +742,7 @@
     function createMessageElement(message) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `fade-in ${message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}`;
+        messageDiv.setAttribute('data-message-id', message.id);
 
         const contentWrapper = document.createElement('div');
         const isUser = message.role === 'user';
@@ -742,12 +798,25 @@
         if (message.metadata?.files?.length > 0) {
             const fileCount = message.metadata.files.length;
             metadataHTML += `
-                <div class="flex items-center gap-1" title="${message.metadata.files.join(', ')}">
+                <div class="flex items-center gap-1" title="Explicit files: ${message.metadata.files.join(', ')}">
                     <div class="w-1 h-1 bg-current rounded-full opacity-50"></div>
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     <span>${fileCount} ${fileCount === 1 ? 'file' : 'files'}</span>
+                </div>
+            `;
+        }
+        
+        if (message.metadata?.intelligentContextFiles?.length > 0) {
+            const intelligentFileCount = message.metadata.intelligentContextFiles.length;
+            metadataHTML += `
+                <div class="flex items-center gap-1" title="AI-selected context: ${message.metadata.intelligentContextFiles.join(', ')}">
+                    <div class="w-1 h-1 bg-current rounded-full opacity-50"></div>
+                    <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-blue-400">${intelligentFileCount} smart context</span>
                 </div>
             `;
         }
@@ -1077,9 +1146,18 @@
                         ` : ''}
                     </div>
                     
-                    <button class="w-full px-3 py-2 bg-gradient-to-r from-yellow-600 to-orange-700 hover:from-yellow-700 hover:to-orange-800 text-white rounded-md transition-all duration-200 font-medium text-sm" onclick="saveAPIKey('${provider}')">
-                        ${isConfigured ? 'Update API Key' : 'Save API Key'}
-                    </button>
+                    <div class="flex gap-2">
+                        <button class="flex-1 px-3 py-2 bg-gradient-to-r from-yellow-600 to-orange-700 hover:from-yellow-700 hover:to-orange-800 text-white rounded-md transition-all duration-200 font-medium text-sm" onclick="saveAPIKey('${provider}')">
+                            ${isConfigured ? 'Update API Key' : 'Save API Key'}
+                        </button>
+                        ${isConfigured ? `
+                            <button class="px-3 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-md transition-all duration-200 font-medium text-sm" onclick="removeAPIKey('${provider}')" title="Remove API Key">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             `;
             
@@ -1091,10 +1169,12 @@
         const select = document.getElementById('providerSelect');
         select.innerHTML = '';
 
-        settings.availableProviders?.forEach(provider => {
+        settings.allProviders?.forEach(provider => {
             const option = document.createElement('option');
             option.value = provider;
-            option.textContent = provider.charAt(0).toUpperCase() + provider.slice(1);
+            const hasApiKey = settings.apiKeyStatus?.[provider] === true;
+            const displayName = provider.charAt(0).toUpperCase() + provider.slice(1);
+            option.textContent = hasApiKey ? displayName : `${displayName} (No API Key)`;
             option.selected = provider === settings.defaultProvider;
             select.appendChild(option);
         });
@@ -1558,7 +1638,7 @@
                 </div>
                 <div style="font-size: 12px; opacity: 0.8;">
                     Command: ${server.command}<br>
-                    Args: ${server.args?.join(', ') || 'none'}
+                    Args: ${Array.isArray(server.args) ? server.args.join(', ') : (server.args || 'none')}
                 </div>
             `;
             
@@ -1618,6 +1698,13 @@
             type: 'saveApiKey',
             provider: provider,
             apiKey: apiKey
+        });
+    };
+
+    window.removeAPIKey = function(provider) {
+        vscode.postMessage({
+            type: 'confirmRemoveApiKey',
+            provider: provider
         });
     };
 

@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 import { AIProviderManager, Message, ToolCall, ChatResponse, ChatRequest } from './AIProviderManager';
 import { FileContextManager } from '../context/FileContextManager';
+import { ContextRetrievalEngine, RetrievalContext } from '../context/ContextRetrievalEngine';
 import { MCPManager } from '../mcp/MCPManager';
 import { ToolExecutionEngine, ToolExecutionRequest, ToolExecutionResult } from '../mcp/ToolExecutionEngine';
 import { marked } from 'marked';
@@ -14,6 +17,8 @@ export interface ChatMessage {
         provider?: string;
         model?: string;
         files?: string[];
+        intelligentContextFiles?: string[];
+        contextCount?: number;
         tokens?: number;
         toolCalls?: ToolCall[];
         toolResults?: ToolExecutionResult[];
@@ -43,6 +48,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         private readonly _extensionUri: vscode.Uri,
         private readonly _aiManager: AIProviderManager,
         private readonly _fileManager: FileContextManager,
+        private readonly _contextEngine: ContextRetrievalEngine,
         private readonly _mcpManager: MCPManager,
         private readonly _toolEngine: ToolExecutionEngine
     ) {
@@ -130,6 +136,15 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 case 'deleteCustomModel':
                     await this.deleteCustomModel(data.provider, data.model);
                     break;
+                case 'confirmRemoveApiKey':
+                    await this.confirmRemoveApiKey(data.provider);
+                    break;
+                case 'removeApiKey':
+                    await this.removeApiKey(data.provider);
+                    break;
+                case 'generateCommitMessage':
+                    await this.generateCommitMessage();
+                    break;
             }
         });
 
@@ -137,6 +152,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         this.sendChatHistory();
         this.sendSettings();
         this.sendMCPStatus();
+        this.sendWorkspaceFiles();
     }
 
     /**
@@ -166,7 +182,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 content: message,
                 timestamp: Date.now(),
                 metadata: {
-                    files: fileReferences
+                    files: fileReferences,
+                    intelligentContextFiles: [] // Will be populated after context retrieval
                 }
             };
 
@@ -177,7 +194,22 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             
             // Prepare conversation context
             const contextFiles = await this.getContextFiles(fileReferences);
-            const conversationMessages = await this.prepareConversationMessages(contextFiles);
+            
+            // Get intelligent context based on the user's message
+            const intelligentContext = await this.getIntelligentContext(message, fileReferences);
+            
+            // Update user message metadata with intelligent context info
+            if (userMessage.metadata && intelligentContext.length > 0) {
+                userMessage.metadata.intelligentContextFiles = intelligentContext.map(f => f.path);
+                userMessage.metadata.contextCount = intelligentContext.length;
+                // Update the existing message in the UI
+                this.updateMessage(userMessage);
+            }
+            
+            // Combine explicit file references with intelligent context
+            const allContextFiles = [...contextFiles, ...intelligentContext];
+            
+            const conversationMessages = await this.prepareConversationMessages(allContextFiles);
 
             // Create AI request
             const request: ChatRequest = {
@@ -203,7 +235,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     metadata: {
                         provider: response.provider,
                         model: response.model,
-                        files: contextFiles.map(f => f.path)
+                        files: allContextFiles.filter(f => !f.isIntelligentContext).map(f => f.path),
+                        intelligentContextFiles: allContextFiles.filter(f => f.isIntelligentContext).map(f => f.path),
+                        contextCount: allContextFiles.length
                     }
                 };
 
@@ -514,11 +548,26 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
         // Add context files
         if (contextFiles.length > 0) {
+            const explicitFiles = contextFiles.filter(f => !f.isIntelligentContext);
+            const intelligentFiles = contextFiles.filter(f => f.isIntelligentContext);
+            
+            let contextContent = '';
+            
+            if (explicitFiles.length > 0) {
+                contextContent += `## Explicitly Referenced Files:\n\n${explicitFiles.map(f => 
+                    `### ${f.path}\n\`\`\`${f.language}\n${f.content}\n\`\`\``
+                ).join('\n\n')}\n\n`;
+            }
+            
+            if (intelligentFiles.length > 0) {
+                contextContent += `## Relevant Project Files (automatically selected):\n\n${intelligentFiles.map(f => 
+                    `### ${f.path} ${f.relevanceScore ? `(relevance: ${f.relevanceScore.toFixed(2)})` : ''}\n\`\`\`${f.language}\n${f.content}\n\`\`\``
+                ).join('\n\n')}`;
+            }
+            
             const contextMessage: Message = {
                 role: 'system',
-                content: `Here are the relevant files for context:\n\n${contextFiles.map(f => 
-                    `### ${f.path}\n\`\`\`${f.language}\n${f.content}\n\`\`\``
-                ).join('\n\n')}`
+                content: contextContent
             };
             messages.push(contextMessage);
         }
@@ -563,6 +612,56 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         });
     }
 
+    private updateMessage(message: ChatMessage): void {
+        this._view?.webview.postMessage({
+            type: 'updateMessage',
+            message
+        });
+    }
+
+    private async sendWorkspaceFiles(): Promise<void> {
+        try {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders || workspaceFolders.length === 0) {
+                this._view?.webview.postMessage({
+                    type: 'workspaceFiles',
+                    data: []
+                });
+                return;
+            }
+
+            const allFiles: string[] = [];
+            
+            for (const workspaceFolder of workspaceFolders) {
+                const relativePattern = new vscode.RelativePattern(workspaceFolder, '**/*');
+                const uris = await vscode.workspace.findFiles(
+                    relativePattern,
+                    '{**/node_modules/**,**/dist/**,**/build/**,**/out/**,**/.git/**,**/coverage/**,**/*.min.js,**/*.map,**/logs/**,**/temp/**,**/tmp/**,**/.vscode/**,**/.idea/**}',
+                    1000
+                );
+                
+                // Convert to relative paths from workspace folder
+                const relativePaths = uris
+                    .filter(uri => uri.fsPath.startsWith(workspaceFolder.uri.fsPath))
+                    .map(uri => path.relative(workspaceFolder.uri.fsPath, uri.fsPath))
+                    .filter(relativePath => relativePath && !relativePath.startsWith('..'));
+                
+                allFiles.push(...relativePaths);
+            }
+
+            this._view?.webview.postMessage({
+                type: 'workspaceFiles',
+                data: allFiles.sort()
+            });
+        } catch (error) {
+            console.error('Error getting workspace files:', error);
+            this._view?.webview.postMessage({
+                type: 'workspaceFiles',
+                data: []
+            });
+        }
+    }
+
     private updateLoadingState(isLoading: boolean): void {
         this._view?.webview.postMessage({
             type: 'loadingState',
@@ -601,15 +700,34 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         const contextFiles: any[] = [];
         
         if (fileReferences && fileReferences.length > 0) {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders || workspaceFolders.length === 0) {
+                return contextFiles;
+            }
+
             for (const ref of fileReferences) {
                 try {
-                    const fileContent = await this._fileManager.getFileContent(ref);
+                    // Try to resolve relative paths
+                    let filePath = ref;
+                    if (!path.isAbsolute(ref)) {
+                        // Try to find the file in workspace folders
+                        for (const workspaceFolder of workspaceFolders) {
+                            const absolutePath = path.join(workspaceFolder.uri.fsPath, ref);
+                            if (fs.existsSync(absolutePath)) {
+                                filePath = absolutePath;
+                                break;
+                            }
+                        }
+                    }
+
+                    const fileContent = await this._fileManager.getFileContent(filePath);
                     if (fileContent) {
-                        const language = this.detectLanguageFromPath(ref);
+                        const language = this.detectLanguageFromPath(filePath);
                         contextFiles.push({
-                            path: ref,
+                            path: filePath,
                             content: fileContent,
-                            language: language
+                            language: language,
+                            isIntelligentContext: false
                         });
                     }
                 } catch (error) {
@@ -619,6 +737,42 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
         
         return contextFiles;
+    }
+
+    private async getIntelligentContext(userMessage: string, explicitFiles?: string[]): Promise<any[]> {
+        try {
+            // Use the context retrieval engine to find relevant files
+            const retrievalContext = await this._contextEngine.retrieveContext(userMessage, {
+                maxFiles: 10,
+                maxFileSize: 100000, // 100KB max per file
+                includeLanguages: ['typescript', 'javascript', 'json', 'markdown', 'python', 'java', 'cpp'],
+                excludePatterns: ['**/node_modules/**', '**/dist/**', '**/build/**']
+            });
+            
+            const intelligentFiles: any[] = [];
+            
+            for (const contextFile of retrievalContext.files) {
+                // Skip files that were explicitly referenced
+                if (explicitFiles && explicitFiles.includes(contextFile.path)) {
+                    continue;
+                }
+                
+                intelligentFiles.push({
+                    path: contextFile.path,
+                    content: contextFile.content,
+                    language: contextFile.language,
+                    relevanceScore: contextFile.relevanceScore,
+                    isIntelligentContext: true
+                });
+            }
+            
+            console.log(`Intelligent context found ${intelligentFiles.length} relevant files for query: "${userMessage}"`);
+            
+            return intelligentFiles;
+        } catch (error) {
+            console.error('Failed to get intelligent context:', error);
+            return [];
+        }
     }
 
     private detectLanguageFromPath(filePath: string): string {
@@ -748,12 +902,74 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         await this._aiManager.setApiKey(provider, apiKey);
     }
 
+    private async confirmRemoveApiKey(provider: string): Promise<void> {
+        const result = await vscode.window.showWarningMessage(
+            `Are you sure you want to remove the API key for ${provider}? This will make the provider unavailable until you add a new key.`,
+            { modal: true },
+            'Remove API Key'
+        );
+        
+        if (result === 'Remove API Key') {
+            await this.removeApiKey(provider);
+        }
+    }
+
+    private async removeApiKey(provider: string): Promise<void> {
+        await this._aiManager.removeApiKey(provider);
+        await this.sendSettings(); // Refresh the UI
+        vscode.window.showInformationMessage(`API key removed for ${provider}.`);
+    }
+
     private async setProvider(provider: string): Promise<void> {
-        // Implementation
+        const config = vscode.workspace.getConfiguration('cuovare');
+        
+        // Validate that the provider exists
+        const availableProviders = this._aiManager.getAllProviders();
+        if (!availableProviders.has(provider)) {
+            vscode.window.showErrorMessage(`Provider '${provider}' is not available.`);
+            return;
+        }
+        
+        // Check if the provider has an API key
+        const hasApiKey = await this._aiManager.hasApiKey(provider);
+        if (!hasApiKey) {
+            vscode.window.showWarningMessage(
+                `No API key configured for ${provider}. Please add an API key in settings.`
+            );
+        }
+        
+        // Update the default provider setting
+        await config.update('defaultProvider', provider, vscode.ConfigurationTarget.Global);
+        
+        // Refresh settings to update UI
+        await this.sendSettings();
+        
+        vscode.window.showInformationMessage(`Switched to ${provider} provider.`);
     }
 
     private async setModel(provider: string, model: string): Promise<void> {
-        // Implementation
+        const config = vscode.workspace.getConfiguration('cuovare');
+        const selectedModels = config.get<Record<string, string>>('selectedModels', {});
+        const customModels = config.get<Record<string, string[]>>('customModels', {});
+        
+        // Check if this is a new custom model
+        const providerData = this._aiManager.getProvider(provider);
+        if (providerData && !providerData.models.includes(model)) {
+            // This is a custom model - add it to the custom models list
+            const providerCustomModels = customModels[provider] || [];
+            if (!providerCustomModels.includes(model)) {
+                providerCustomModels.push(model);
+                customModels[provider] = providerCustomModels;
+                await config.update('customModels', customModels, vscode.ConfigurationTarget.Global);
+            }
+        }
+        
+        // Update selected model for this provider
+        selectedModels[provider] = model;
+        await config.update('selectedModels', selectedModels, vscode.ConfigurationTarget.Global);
+        
+        // Refresh settings to update UI
+        await this.sendSettings();
     }
 
     private async addMCPServer(server: any): Promise<void> {
@@ -777,7 +993,30 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     private async deleteCustomModel(provider: string, model: string): Promise<void> {
-        // Implementation
+        const config = vscode.workspace.getConfiguration('cuovare');
+        const customModels = config.get<Record<string, string[]>>('customModels', {});
+        const selectedModels = config.get<Record<string, string>>('selectedModels', {});
+        
+        // Remove from custom models list
+        if (customModels[provider]) {
+            customModels[provider] = customModels[provider].filter(m => m !== model);
+            if (customModels[provider].length === 0) {
+                delete customModels[provider];
+            }
+            await config.update('customModels', customModels, vscode.ConfigurationTarget.Global);
+        }
+        
+        // If this was the selected model, reset to the provider's default
+        if (selectedModels[provider] === model) {
+            const providerData = this._aiManager.getProvider(provider);
+            if (providerData && providerData.models.length > 0) {
+                selectedModels[provider] = providerData.models[0];
+                await config.update('selectedModels', selectedModels, vscode.ConfigurationTarget.Global);
+            }
+        }
+        
+        // Refresh settings to update UI
+        await this.sendSettings();
     }
 
     private loadSession(sessionId: string): void {
@@ -804,6 +1043,174 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         // Implementation
     }
 
+    private async generateCommitMessage(): Promise<void> {
+        try {
+            this._isLoading = true;
+            this.updateLoadingState(true);
+
+            // Get git status and diff
+            const gitInfo = await this.getGitChanges();
+            
+            if (!gitInfo.hasChanges) {
+                vscode.window.showInformationMessage('No git changes found to commit.');
+                return;
+            }
+
+            // Generate commit message using AI
+            const commitMessage = await this.generateAICommitMessage(gitInfo);
+            
+            // Show the generated commit message
+            const result = await vscode.window.showInformationMessage(
+                `Generated commit message:\n\n"${commitMessage}"\n\nWould you like to use this commit message?`,
+                { modal: true },
+                'Use Message',
+                'Copy to Clipboard',
+                'Edit Message'
+            );
+
+            if (result === 'Use Message') {
+                await this.commitWithMessage(commitMessage);
+            } else if (result === 'Copy to Clipboard') {
+                await vscode.env.clipboard.writeText(commitMessage);
+                vscode.window.showInformationMessage('Commit message copied to clipboard.');
+            } else if (result === 'Edit Message') {
+                const editedMessage = await vscode.window.showInputBox({
+                    value: commitMessage,
+                    prompt: 'Edit the commit message',
+                    placeHolder: 'Enter your commit message'
+                });
+                
+                if (editedMessage) {
+                    await this.commitWithMessage(editedMessage);
+                }
+            }
+
+        } catch (error) {
+            console.error('Error generating commit message:', error);
+            vscode.window.showErrorMessage(`Failed to generate commit message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            this._isLoading = false;
+            this.updateLoadingState(false);
+        }
+    }
+
+    private async getGitChanges(): Promise<{ hasChanges: boolean; status: string; diff: string; files: string[] }> {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            throw new Error('No workspace folder found');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const { spawn } = require('child_process');
+
+        // Get git status
+        const status = await this.runGitCommand(workspaceRoot, ['status', '--porcelain']);
+        const hasChanges = status.trim().length > 0;
+        
+        if (!hasChanges) {
+            return { hasChanges: false, status: '', diff: '', files: [] };
+        }
+
+        // Get git diff for staged and unstaged changes
+        const diffStaged = await this.runGitCommand(workspaceRoot, ['diff', '--staged']);
+        const diffUnstaged = await this.runGitCommand(workspaceRoot, ['diff']);
+        const diff = diffStaged + '\n' + diffUnstaged;
+
+        // Parse changed files
+        const files = status.split('\n')
+            .filter(line => line.trim())
+            .map(line => line.substring(3)); // Remove status indicators
+
+        return { hasChanges: true, status, diff, files };
+    }
+
+    private async runGitCommand(cwd: string, args: string[]): Promise<string> {
+        const { spawn } = require('child_process');
+        
+        return new Promise((resolve, reject) => {
+            const git = spawn('git', args, { cwd });
+            let stdout = '';
+            let stderr = '';
+
+            git.stdout.on('data', (data: Buffer) => {
+                stdout += data.toString();
+            });
+
+            git.stderr.on('data', (data: Buffer) => {
+                stderr += data.toString();
+            });
+
+            git.on('close', (code: number) => {
+                if (code === 0) {
+                    resolve(stdout);
+                } else {
+                    reject(new Error(stderr || `Git command failed with code ${code}`));
+                }
+            });
+        });
+    }
+
+    private async generateAICommitMessage(gitInfo: { status: string; diff: string; files: string[] }): Promise<string> {
+        const prompt = `Generate a concise, conventional commit message based on the following git changes.
+
+Files changed:
+${gitInfo.files.join('\n')}
+
+Git status:
+${gitInfo.status}
+
+Git diff:
+${gitInfo.diff.substring(0, 4000)} ${gitInfo.diff.length > 4000 ? '...(truncated)' : ''}
+
+Rules:
+1. Use conventional commit format: type(scope): description
+2. Common types: feat, fix, docs, style, refactor, test, chore
+3. Keep the description under 72 characters
+4. Be specific about what changed
+5. Focus on the "what" and "why", not the "how"
+
+Return only the commit message, nothing else.`;
+
+        const messages = [
+            {
+                role: 'system' as const,
+                content: 'You are an expert at writing clear, concise git commit messages following conventional commit standards.'
+            },
+            {
+                role: 'user' as const,
+                content: prompt
+            }
+        ];
+
+        const response = await this._aiManager.sendMessage({
+            messages,
+            enableTools: false
+        });
+
+        return response.content.trim();
+    }
+
+    private async commitWithMessage(message: string): Promise<void> {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            throw new Error('No workspace folder found');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        
+        try {
+            // Add all changes
+            await this.runGitCommand(workspaceRoot, ['add', '.']);
+            
+            // Commit with the generated message
+            await this.runGitCommand(workspaceRoot, ['commit', '-m', message]);
+            
+            vscode.window.showInformationMessage(`Successfully committed: "${message}"`);
+        } catch (error) {
+            throw new Error(`Failed to commit: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
     private _getHtmlForWebview(webview: vscode.Webview): string {
         const styleUri = webview.asWebviewUri(
             vscode.Uri.joinPath(this._extensionUri, 'resources', 'styles.css')
@@ -813,13 +1220,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             vscode.Uri.joinPath(this._extensionUri, 'resources', 'main.js')
         );
 
-        const highlightJsUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'highlight.js', 'lib', 'index.js')
-        );
-
-        const highlightCssUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'highlight.js', 'styles', 'github-dark.css')
-        );
+        // Use CDN for highlight.js to avoid require issues
+        const highlightJsUri = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+        const highlightCssUri = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
 
         return `
 <!DOCTYPE html>
@@ -827,7 +1230,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com; script-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com 'unsafe-eval';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; script-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com 'unsafe-eval';">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -879,6 +1282,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     title="New">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </button>
+                <button id="generateCommitBtn"
+                    class="flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200"
+                    title="Generate Commit Message">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                     </svg>
                 </button>
                 <button id="settingsBtn"
@@ -1026,7 +1436,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                             <div class="flex items-center gap-2 mb-3">
                                 <div class="w-6 h-6 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-md flex items-center justify-center">
                                     <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1 1 21 9z"/>
                                     </svg>
                                 </div>
                                 <div>

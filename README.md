@@ -3,7 +3,6 @@
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=cuovare.cuovare)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9+-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/Build-Passing-green)](https://github.com/your-org/cuovare)
 
 
 
@@ -16,7 +15,11 @@
 - **Anthropic Claude 3.5 Sonnet** - Advanced reasoning and code understanding  
 - **Groq Llama 3.3 70B** - Ultra-fast inference with high quality
 - **Grok (X.AI)** - Innovative AI with real-time capabilities
+- **Google AI Gemini** - Latest 2.5 Flash & Pro models with advanced capabilities
+- **Ollama** - Local model hosting with popular open-source models
+- **Local/Custom** - Connect to any local API endpoint (LM Studio, etc.)
 - **OpenRouter** - Access to 100+ AI models through one API
+- **Custom Models** - Add and save custom models for any provider
 
 ### 🧠 Intelligent Context System
 - **Semantic Search** - Understands code concepts, not just keywords
@@ -30,11 +33,13 @@
 - **Syntax Highlighting** - Powered by Highlight.js with multiple themes
 - **Markdown Support** - Rich text rendering with code blocks
 - **Dark Mode Native** - Seamlessly integrates with VS Code themes
-- **Mobile-First** - Works perfectly in narrohttps://github.com/Kynlos/cuovarew sidebar widths
+- **Mobile-First** - Works perfectly in narrow sidebar widths
+- **CDN Optimized** - Fast loading with reliable external resources
 
 ### 🔧 Advanced Capabilities
 - **Enhanced MCP Tool Support** - Universal tool execution across all AI providers
 - **@ File Referencing** - `@filename` or `@filename:1-150` for precise context
+- **AI-Powered Git Commits** - Generate conventional commit messages with analysis
 - **Agentic Code Actions** - Copy, apply, and create files directly from chat
 - **Parallel Tool Execution** - Run multiple tools simultaneously with smart validation
 - **Auto-Tool Detection** - AI automatically discovers and uses available tools
@@ -43,6 +48,8 @@
 
 ### 🛡️ Security & Privacy
 - **Secure API Key Storage** - Uses VS Code's encrypted storage
+- **API Key Management** - Easy add/remove functionality for each provider
+- **Local Model Support** - Run models completely offline with Ollama
 - **No Data Logging** - Your code stays private
 - **Configurable Providers** - Full control over which AI services to use
 - **Local Processing** - Context analysis happens locally
@@ -85,6 +92,27 @@
 2. Create an API key
 3. Add to Cuovare settings: `gsk_...`
 
+#### Google AI (Gemini)
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Generate an API key
+3. Add to Cuovare settings: Your API key
+
+#### Grok (X.AI)
+1. Visit [X.AI Console](https://console.x.ai/)
+2. Create an API key
+3. Add to Cuovare settings: `xai-...`
+
+#### Ollama (Local Models)
+1. Install [Ollama](https://ollama.ai/)
+2. Download models: `ollama pull llama3.2`
+3. Start Ollama server: `ollama serve`
+4. Select "Ollama" provider in Cuovare (no API key needed)
+
+#### Local/Custom Endpoints
+1. Set up your local API server (LM Studio, vLLM, etc.)
+2. Select "Local/Custom" provider in Cuovare
+3. Configure custom endpoint URL in settings if needed
+
 ## 💡 Usage Examples
 
 ### Basic Code Questions
@@ -111,6 +139,11 @@ Create a new React component for displaying user profiles with TypeScript
 ### Architecture Questions
 ```
 Show me how the database layer connects to the API endpoints
+```
+
+### Git Workflow
+```
+[Use the git commit button in chat header for AI-generated commit messages]
 ```
 
 ## 🏗️ Project Structure
@@ -209,7 +242,11 @@ See [TESTING.md](docs/TESTING.md) for detailed testing information.
   "cuovare.selectedModels": {
     "openai": "gpt-4o",
     "anthropic": "claude-3-5-sonnet-20241022",
-    "groq": "llama-3.3-70b-versatile"
+    "groq": "llama-3.3-70b-versatile",
+    "google": "gemini-2.5-flash-preview-05-20",
+    "grok": "grok-2-1212",
+    "ollama": "llama3.2:latest",
+    "local": "local-model"
   },
   "cuovare.mcpServers": [
     {
@@ -257,6 +294,9 @@ Cuovare features a completely overhauled MCP implementation with universal tool 
 - **Anthropic**: Native tool use with `input_schema` validation
 - **Groq**: Complete function calling support
 - **Grok**: Tool descriptions in system prompts
+- **Google AI**: Native function declarations with structured parameters
+- **Ollama**: Basic tool support via system prompts
+- **Local/Custom**: Basic tool support via system prompts
 - **OpenRouter**: Model-specific tool support detection
 
 #### Key Features
@@ -269,6 +309,37 @@ Cuovare features a completely overhauled MCP implementation with universal tool 
 
 See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 
+## 🆕 Recent Updates
+
+### v0.3.0 - Enhanced Context & Git Integration
+- **✅ AI-Powered Git Commits**: Generate conventional commit messages with AI analysis
+- **✅ Intelligent Context Engine**: Advanced semantic search that understands code concepts
+- **✅ Multi-Workspace Support**: Properly handles multi-root VS Code workspaces
+- **✅ Fixed @ File References**: Resolved file referencing with autocomplete and proper path resolution
+- **✅ Context Scope Control**: Context engine now stays within project boundaries
+- **✅ Message Update System**: Real-time context updates without duplicate messages
+
+### v0.2.2 - Local Models & API Key Management
+- **✅ Ollama Integration**: Run models locally with popular open-source models
+- **✅ Local/Custom Provider**: Connect to any local API endpoint (LM Studio, vLLM, etc.)
+- **✅ API Key Management**: Add remove buttons for easy key management
+- **✅ Provider Switching Fix**: Fixed provider selection persistence across sessions
+
+### v0.2.1 - Enhanced Stability & Google AI Support
+- **✅ Fixed UI Issues**: Resolved JavaScript errors and SVG rendering problems
+- **✅ Google AI Integration**: Added latest Gemini 2.5 Flash & Pro models with tool support
+- **✅ Universal Custom Models**: Fixed custom model saving for all providers (not just Groq)
+- **✅ MCP Display Fix**: Resolved server configuration display issues
+- **✅ CDN Optimization**: Improved reliability with external resource loading
+
+### Latest Model Support
+- **Gemini 2.5 Flash Preview** - Best price-performance with adaptive thinking
+- **Gemini 2.5 Pro Preview** - State-of-the-art reasoning for complex problems
+- **Gemini 2.0 Flash** - Next generation with enhanced performance
+- **Ollama Models** - llama3.2, codellama, mistral, gemma2, qwen2.5 and more
+- **Custom Models** - Add and persist custom models across all providers
+- **Local Endpoints** - Full compatibility with LM Studio and similar tools
+
 ## 🎯 Roadmap
 
 ### v0.1.0 - Core Features ✅
@@ -277,13 +348,25 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] Modern UI design
 - [x] File referencing system
 
-### v0.2.0 - Advanced Context 🚧
+### v0.2.0 - Advanced Context ✅
 - [x] Semantic search engine
 - [x] Intelligent code analysis
 - [x] Comprehensive test suite
+- [x] Enhanced MCP support with universal tool execution
+- [x] Google AI provider integration
+- [x] Universal custom model support
+- [x] Local model support (Ollama, LM Studio)
+- [x] API key management improvements
+
+### v0.3.0 - Enhanced UX ✅
+- [x] AI-powered git commit generation
+- [x] Multi-workspace support
+- [x] Fixed @ file references with autocomplete
+- [x] Context scope control
+- [x] Real-time message updates
 - [ ] Streaming responses
 
-### v0.3.0 - Enhanced UX
+### v0.4.0 - Advanced Features
 - [ ] Voice input/output
 - [ ] Custom model fine-tuning
 - [ ] Advanced context filtering
@@ -323,8 +406,10 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 - **Sourcegraph Cody** - Inspiration for the AI coding assistant concept
 - **VS Code Extension API** - Excellent platform for development tools
-- **Anthropic, OpenAI, Groq** - Amazing AI providers
+- **Anthropic, OpenAI, Groq, Google AI, X.AI** - Amazing AI providers
+- **Ollama & Open Source AI Community** - Making local AI accessible to everyone
 - **Model Context Protocol** - Future of AI tool integration
+- **Tailwind CSS & Highlight.js** - Beautiful UI components and syntax highlighting
 
 ## 📞 Support
 
@@ -337,7 +422,7 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 <div align="center">
 
-**[⭐ Star us on GitHub](https://github.com/your-org/cuovare)** • **[📦 VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=cuovare.cuovare)** • **[📖 Documentation](docs/)**
+**[⭐ Star us on GitHub](https://github.com/Kynlos/cuovare)** • **[📦 VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=cuovare.cuovare)** • **[📖 Documentation](docs/)**
 
 Made with ❤️ by the Cuovare team
 

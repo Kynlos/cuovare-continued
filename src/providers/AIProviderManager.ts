@@ -6,7 +6,8 @@ export interface AIProvider {
     baseUrl: string;
     models: string[];
     supportsTools: boolean;
-    headers: (apiKey: string) => Record<string, string>;
+    requiresApiKey?: boolean; // Optional - defaults to true
+    headers: (apiKey?: string) => Record<string, string>;
     formatRequest: (messages: Message[], model: string, tools?: any[], toolChoice?: any) => any;
     parseResponse: (response: any) => string;
     parseToolCalls?: (response: any) => ToolCall[];
@@ -70,8 +71,8 @@ export class AIProviderManager {
             baseUrl: 'https://api.openai.com/v1/chat/completions',
             models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
             supportsTools: true,
-            headers: (apiKey: string) => ({
-                'Authorization': `Bearer ${apiKey}`,
+            headers: (apiKey?: string) => ({
+                'Authorization': `Bearer ${apiKey || ''}`,
                 'Content-Type': 'application/json'
             }),
             formatRequest: (messages: Message[], model: string, tools?: any[], toolChoice?: any) => {
@@ -127,8 +128,8 @@ export class AIProviderManager {
             models: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
             supportsTools: true,
             requiresSystemPrompt: true,
-            headers: (apiKey: string) => ({
-                'x-api-key': apiKey,
+            headers: (apiKey?: string) => ({
+                'x-api-key': apiKey || '',
                 'Content-Type': 'application/json',
                 'anthropic-version': '2023-06-01'
             }),
@@ -195,8 +196,8 @@ export class AIProviderManager {
             baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
             models: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768'],
             supportsTools: true,
-            headers: (apiKey: string) => ({
-                'Authorization': `Bearer ${apiKey}`,
+            headers: (apiKey?: string) => ({
+                'Authorization': `Bearer ${apiKey || ''}`,
                 'Content-Type': 'application/json'
             }),
             formatRequest: (messages: Message[], model: string, tools?: any[], toolChoice?: any) => {
@@ -251,8 +252,8 @@ export class AIProviderManager {
             baseUrl: 'https://api.x.ai/v1/chat/completions',
             models: ['grok-2-1212', 'grok-2-vision-1212', 'grok-beta', 'grok-vision-beta'],
             supportsTools: false, // Limited tool support for now
-            headers: (apiKey: string) => ({
-                'Authorization': `Bearer ${apiKey}`,
+            headers: (apiKey?: string) => ({
+                'Authorization': `Bearer ${apiKey || ''}`,
                 'Content-Type': 'application/json'
             }),
             formatRequest: (messages: Message[], model: string, tools?: any[]) => {
@@ -287,6 +288,210 @@ export class AIProviderManager {
             }
         });
 
+        // Google AI (Gemini) Provider - Tool support
+        this.providers.set('google', {
+            name: 'Google AI',
+            baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
+            models: [
+                'gemini-2.5-flash-preview-05-20',
+                'gemini-2.5-pro-preview-05-06', 
+                'gemini-2.0-flash',
+                'gemini-2.0-flash-lite',
+                'gemini-1.5-pro',
+                'gemini-1.5-flash',
+                'gemini-1.5-flash-8b'
+            ],
+            supportsTools: true,
+            headers: (apiKey?: string) => ({
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey || ''
+            }),
+            formatRequest: (messages: Message[], model: string, tools?: any[], toolChoice?: any) => {
+                // Convert messages to Gemini format
+                const contents = messages.filter(m => m.role !== 'system').map(msg => {
+                    if (msg.role === 'tool') {
+                        return {
+                            role: 'function',
+                            parts: [{
+                                functionResponse: {
+                                    name: msg.name,
+                                    response: JSON.parse(msg.content || '{}')
+                                }
+                            }]
+                        };
+                    }
+                    return {
+                        role: msg.role === 'assistant' ? 'model' : 'user',
+                        parts: [{ text: msg.content }]
+                    };
+                });
+
+                const request: any = {
+                    contents,
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 4096
+                    }
+                };
+
+                // Add system instruction from system messages
+                const systemMessages = messages.filter(m => m.role === 'system');
+                if (systemMessages.length > 0) {
+                    request.systemInstruction = {
+                        parts: [{ text: systemMessages.map(m => m.content).join('\n') }]
+                    };
+                }
+
+                // Add tools if provided
+                if (tools && tools.length > 0) {
+                    request.tools = [{
+                        functionDeclarations: tools.map(tool => ({
+                            name: tool.name,
+                            description: tool.description,
+                            parameters: tool.parameters
+                        }))
+                    }];
+                }
+
+                return request;
+            },
+            parseResponse: (response: any) => {
+                return response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            },
+            parseToolCalls: (response: any) => {
+                const candidate = response.data.candidates?.[0];
+                const functionCalls = candidate?.content?.parts?.filter((part: any) => part.functionCall);
+                
+                if (!functionCalls || functionCalls.length === 0) {
+                    return [];
+                }
+
+                return functionCalls.map((call: any, index: number) => ({
+                    id: `call_${index}`,
+                    type: 'function',
+                    function: {
+                        name: call.functionCall.name,
+                        arguments: JSON.stringify(call.functionCall.args || {})
+                    }
+                }));
+            },
+            formatToolResult: (toolCall: ToolCall, result: any) => ({
+                role: 'tool',
+                name: toolCall.function.name,
+                content: typeof result === 'string' ? result : JSON.stringify(result)
+            })
+        });
+
+        // Ollama Provider - Local model hosting
+        this.providers.set('ollama', {
+            name: 'Ollama',
+            baseUrl: 'http://localhost:11434/api/chat',
+            models: [
+                'llama3.2:latest',
+                'llama3.2:3b',
+                'llama3.1:latest',
+                'llama3.1:8b',
+                'llama3.1:70b',
+                'codellama:latest',
+                'codellama:7b',
+                'codellama:13b',
+                'mistral:latest',
+                'mistral:7b',
+                'gemma2:latest',
+                'gemma2:9b',
+                'gemma2:27b',
+                'qwen2.5:latest',
+                'qwen2.5:7b',
+                'qwen2.5:14b',
+                'qwen2.5:32b'
+            ],
+            supportsTools: false, // Basic implementation first
+            requiresApiKey: false,
+            headers: (apiKey?: string) => ({
+                'Content-Type': 'application/json'
+            }),
+            formatRequest: (messages: Message[], model: string, tools?: any[]) => {
+                const request: any = {
+                    model,
+                    messages: messages.filter(m => m.role !== 'tool').map(msg => ({
+                        role: msg.role,
+                        content: msg.content
+                    })),
+                    stream: false,
+                    options: {
+                        temperature: 0.7
+                    }
+                };
+
+                // Add tool descriptions to system prompt if tools provided
+                if (tools && tools.length > 0) {
+                    const toolDescriptions = tools.map(tool => 
+                        `${tool.name}: ${tool.description}`
+                    ).join('\n');
+                    
+                    const systemMessage = {
+                        role: 'system',
+                        content: `You have access to the following tools:\n${toolDescriptions}\n\nTo use a tool, respond with: USE_TOOL:tool_name:{"arg1":"value1","arg2":"value2"}`
+                    };
+                    
+                    request.messages.unshift(systemMessage);
+                }
+
+                return request;
+            },
+            parseResponse: (response: any) => {
+                return response.data.message?.content || '';
+            }
+        });
+
+        // Local Provider - Custom endpoints
+        this.providers.set('local', {
+            name: 'Local/Custom',
+            baseUrl: 'http://localhost:8080/v1/chat/completions', // Default LM Studio endpoint
+            models: [
+                'local-model',
+                'custom-model-1',
+                'custom-model-2'
+            ],
+            supportsTools: false,
+            requiresApiKey: false,
+            headers: (apiKey?: string) => ({
+                'Content-Type': 'application/json',
+                ...(apiKey && { 'Authorization': `Bearer ${apiKey}` })
+            }),
+            formatRequest: (messages: Message[], model: string, tools?: any[]) => {
+                const request: any = {
+                    model,
+                    messages: messages.filter(m => m.role !== 'tool').map(msg => ({
+                        role: msg.role,
+                        content: msg.content
+                    })),
+                    stream: false,
+                    temperature: 0.7,
+                    max_tokens: 4096
+                };
+
+                // Add tool descriptions to system prompt if tools provided
+                if (tools && tools.length > 0) {
+                    const toolDescriptions = tools.map(tool => 
+                        `${tool.name}: ${tool.description}`
+                    ).join('\n');
+                    
+                    const systemMessage = {
+                        role: 'system',
+                        content: `You have access to the following tools:\n${toolDescriptions}\n\nTo use a tool, respond with: USE_TOOL:tool_name:{"arg1":"value1","arg2":"value2"}`
+                    };
+                    
+                    request.messages.unshift(systemMessage);
+                }
+
+                return request;
+            },
+            parseResponse: (response: any) => {
+                return response.data.choices?.[0]?.message?.content || '';
+            }
+        });
+
         // OpenRouter Provider - Tool support varies by model
         this.providers.set('openrouter', {
             name: 'OpenRouter',
@@ -298,8 +503,8 @@ export class AIProviderManager {
                 'meta-llama/llama-3.2-90b-vision-instruct'
             ],
             supportsTools: true,
-            headers: (apiKey: string) => ({
-                'Authorization': `Bearer ${apiKey}`,
+            headers: (apiKey?: string) => ({
+                'Authorization': `Bearer ${apiKey || ''}`,
                 'Content-Type': 'application/json',
                 'HTTP-Referer': 'https://github.com/cuovare/vscode-extension',
                 'X-Title': 'Cuovare VSCode Extension'
@@ -402,7 +607,18 @@ export class AIProviderManager {
         await this.context.secrets.store(`cuovare.apiKey.${provider}`, apiKey);
     }
 
+    public async removeApiKey(provider: string): Promise<void> {
+        await this.context.secrets.delete(`cuovare.apiKey.${provider}`);
+    }
+
     public async hasApiKey(provider: string): Promise<boolean> {
+        const providerData = this.providers.get(provider);
+        
+        // If provider doesn't require API key, it's always available
+        if (providerData && providerData.requiresApiKey === false) {
+            return true;
+        }
+        
         const apiKey = await this.getStoredApiKey(provider);
         return !!(apiKey && apiKey.trim() !== '');
     }
@@ -436,7 +652,7 @@ export class AIProviderManager {
         }
 
         const apiKey = await this.getStoredApiKey(targetProvider);
-        if (!apiKey) {
+        if (!apiKey && provider.requiresApiKey !== false) {
             throw new Error(`No API key configured for ${provider.name}`);
         }
 
@@ -466,7 +682,13 @@ export class AIProviderManager {
         });
         
         try {
-            const response = await axios.post(provider.baseUrl, requestData, { headers });
+            // Construct URL - special handling for Google AI
+            let requestUrl = provider.baseUrl;
+            if (targetProvider === 'google') {
+                requestUrl = `${provider.baseUrl}/${targetModel}:generateContent`;
+            }
+            
+            const response = await axios.post(requestUrl, requestData, { headers });
             const content = provider.parseResponse(response);
             
             // Parse tool calls if provider supports them

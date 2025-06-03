@@ -311,14 +311,26 @@ export class ContextRetrievalEngine {
             return [];
         }
 
-        // Build include pattern
+        // Get the active workspace folder (the one containing the active file)
+        let targetWorkspaceFolder = workspaceFolders[0]; // Default to first
+        const activeEditor = vscode.window.activeTextEditor;
+        
+        if (activeEditor) {
+            const activeFile = activeEditor.document.uri;
+            const matchingFolder = vscode.workspace.getWorkspaceFolder(activeFile);
+            if (matchingFolder) {
+                targetWorkspaceFolder = matchingFolder;
+            }
+        }
+
+        // Build include pattern - constrain to workspace folders only
         let includePattern = '**/*';
         if (options.includeLanguages.length > 0) {
             const extensions = this.getExtensionsForLanguages(options.includeLanguages);
             includePattern = `**/*.{${extensions.join(',')}}`;
         }
 
-        // Build exclude pattern
+        // Build exclude pattern with additional safety constraints
         let excludePattern = `{${options.excludePatterns.join(',')}}`;
         
         if (!options.includeTests) {
@@ -329,11 +341,20 @@ export class ContextRetrievalEngine {
             excludePattern = excludePattern.slice(0, -1) + ',**/*.md,**/docs/**,**/documentation/**}';
         }
 
-        return vscode.workspace.findFiles(
-            includePattern,
+        // Search only within the target workspace folder
+        const relativePattern = new vscode.RelativePattern(targetWorkspaceFolder, includePattern);
+        const files = await vscode.workspace.findFiles(
+            relativePattern,
             excludePattern,
             options.maxFiles * 3 // Get more files to filter later
         );
+        
+        // Double-check that files are within workspace folder
+        const validFiles = files.filter(file => 
+            file.fsPath.startsWith(targetWorkspaceFolder.uri.fsPath)
+        );
+        
+        return validFiles;
     }
 
     private getExtensionsForLanguages(languages: string[]): string[] {
@@ -688,14 +709,37 @@ export class ContextRetrievalEngine {
     }
 
     private async getRecentlyModifiedFiles(): Promise<ContextualFile[]> {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            return [];
+        }
+
+        // Get the active workspace folder (the one containing the active file)
+        let targetWorkspaceFolder = workspaceFolders[0]; // Default to first
+        const activeEditor = vscode.window.activeTextEditor;
+        
+        if (activeEditor) {
+            const activeFile = activeEditor.document.uri;
+            const matchingFolder = vscode.workspace.getWorkspaceFolder(activeFile);
+            if (matchingFolder) {
+                targetWorkspaceFolder = matchingFolder;
+            }
+        }
+
+        const relativePattern = new vscode.RelativePattern(targetWorkspaceFolder, '**/*');
         const uris = await vscode.workspace.findFiles(
-            '**/*',
+            relativePattern,
             `{${this.defaultExcludePatterns.join(',')}}`,
             20
         );
         
+        // Ensure files are within workspace folder
+        const validFiles = uris.filter(file => 
+            file.fsPath.startsWith(targetWorkspaceFolder.uri.fsPath)
+        );
+        
         const files: ContextualFile[] = [];
-        for (const uri of uris) {
+        for (const uri of validFiles) {
             const file = await this.analyzeFile(uri.fsPath);
             if (file) {
                 files.push(file);

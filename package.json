@@ -113,6 +113,9 @@
             "anthropic",
             "groq",
             "grok",
+            "google",
+            "ollama",
+            "local",
             "openrouter"
           ],
           "default": "openai",
@@ -137,6 +140,18 @@
             "grok": {
               "type": "string",
               "description": "Selected Grok model"
+            },
+            "google": {
+              "type": "string",
+              "description": "Selected Google AI model"
+            },
+            "ollama": {
+              "type": "string",
+              "description": "Selected Ollama model"
+            },
+            "local": {
+              "type": "string",
+              "description": "Selected Local/Custom model"
             },
             "openrouter": {
               "type": "string",

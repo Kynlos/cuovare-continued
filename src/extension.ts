@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ChatViewProvider } from './providers/ChatViewProvider';
 import { AIProviderManager } from './providers/AIProviderManager';
 import { FileContextManager } from './context/FileContextManager';
+import { ContextRetrievalEngine } from './context/ContextRetrievalEngine';
 import { MCPManager } from './mcp/MCPManager';
 import { ToolExecutionEngine } from './mcp/ToolExecutionEngine';
 
@@ -11,6 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Initialize core managers
     const aiProviderManager = new AIProviderManager(context);
     const fileContextManager = new FileContextManager();
+    const contextRetrievalEngine = ContextRetrievalEngine.getInstance();
     const mcpManager = new MCPManager();
     const toolExecutionEngine = new ToolExecutionEngine(mcpManager);
     
@@ -19,6 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
         context.extensionUri, 
         aiProviderManager, 
         fileContextManager,
+        contextRetrievalEngine,
         mcpManager,
         toolExecutionEngine
     );
