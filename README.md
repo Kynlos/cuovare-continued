@@ -3,7 +3,7 @@
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=cuovare.cuovare)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9+-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/Build-Passing-green)](https://github.com/your-org/cuovare)
+[![Build Status](https://img.shields.io/badge/Build-Passing-green)](https://github.com/Kynlos/cuovare)
 
 
 
