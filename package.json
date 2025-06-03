@@ -181,6 +181,43 @@
           "type": "array",
           "description": "Saved chat sessions (managed automatically)",
           "default": []
+        },
+        "cuovare.customModels": {
+          "type": "object",
+          "description": "Custom models added by user for each provider",
+          "properties": {
+            "openai": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "anthropic": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "groq": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "grok": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "openrouter": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "default": {}
         }
       }
     }

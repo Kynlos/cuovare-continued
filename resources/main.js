@@ -106,7 +106,9 @@
         // Import and configure highlight.js if available
         if (typeof hljs !== 'undefined') {
             hljs.configure({
-                languages: ['javascript', 'typescript', 'python', 'java', 'cpp', 'html', 'css', 'json', 'xml', 'sql', 'shell']
+                languages: ['javascript', 'typescript', 'python', 'java', 'cpp', 'c', 'html', 'css', 'json', 'xml', 'sql', 'shell', 'bash', 'yaml', 'markdown', 'php', 'ruby', 'go', 'rust', 'swift', 'kotlin', 'scala', 'r', 'matlab', 'powershell'],
+                classPrefix: 'hljs-',
+                ignoreUnescapedHTML: true
             });
         }
     }
@@ -290,6 +292,161 @@
         messageInput.value = newInput;
         updateFileReferences(newInput);
     };
+
+    // Global functions for code actions
+    window.copyCode = async function(codeId) {
+        const container = document.querySelector(`[data-code-id="${codeId}"]`);
+        if (!container) return;
+        
+        const codeElement = container.querySelector('pre code');
+        if (!codeElement) return;
+        
+        const code = codeElement.textContent;
+        
+        try {
+            await navigator.clipboard.writeText(code);
+            showCodeActionFeedback(container.querySelector('.copy-btn'), 'Copied!', 'success');
+        } catch (err) {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = code;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showCodeActionFeedback(container.querySelector('.copy-btn'), 'Copied!', 'success');
+        }
+    };
+
+    window.applyCode = function(codeId, code, language) {
+        const container = document.querySelector(`[data-code-id="${codeId}"]`);
+        
+        // Check if there's a file path comment in the code
+        const filePathMatch = code.match(/\/\/\s*File:\s*(.+)|#\s*File:\s*(.+)|<!--\s*File:\s*(.+)\s*-->/);
+        let targetFile = null;
+        
+        if (filePathMatch) {
+            targetFile = filePathMatch[1] || filePathMatch[2] || filePathMatch[3];
+            targetFile = targetFile.trim();
+            
+            // Apply to specific file
+            vscode.postMessage({
+                type: 'applyCodeToFile',
+                filePath: targetFile,
+                content: code.replace(/\/\/\s*File:\s*.+\n?|#\s*File:\s*.+\n?|<!--\s*File:\s*.+\s*-->\n?/, '').trim()
+            });
+            
+            showCodeActionFeedback(container.querySelector('.apply-btn'), `Applied to ${targetFile}`, 'success');
+        } else {
+            // Apply to current file
+            vscode.postMessage({
+                type: 'getActiveFile'
+            });
+            
+            // Store the code to apply when we get the active file response
+            window.pendingApplyCode = { code, language, codeId };
+            showCodeActionFeedback(container.querySelector('.apply-btn'), 'Applying...', 'info');
+        }
+    };
+
+    window.createFile = function(codeId, code, language) {
+        const container = document.querySelector(`[data-code-id="${codeId}"]`);
+        
+        // Try to extract filename from code comments or generate one
+        let fileName = extractFileName(code, language);
+        
+        if (!fileName) {
+            // Generate filename based on language
+            const extensions = {
+                'javascript': 'js',
+                'typescript': 'ts',
+                'python': 'py',
+                'java': 'java',
+                'cpp': 'cpp',
+                'c': 'c',
+                'html': 'html',
+                'css': 'css',
+                'json': 'json',
+                'sql': 'sql',
+                'bash': 'sh',
+                'yaml': 'yml',
+                'markdown': 'md',
+                'php': 'php',
+                'ruby': 'rb',
+                'go': 'go',
+                'rust': 'rs',
+                'swift': 'swift'
+            };
+            
+            const ext = extensions[language] || 'txt';
+            fileName = `generated_${Date.now()}.${ext}`;
+        }
+        
+        vscode.postMessage({
+            type: 'createNewFile',
+            fileName: fileName,
+            content: code,
+            language: language
+        });
+        
+        showCodeActionFeedback(container.querySelector('.create-btn'), `Creating ${fileName}`, 'success');
+    };
+
+    function extractFileName(code, language) {
+        // Look for filename hints in comments
+        const patterns = [
+            /\/\/\s*File:\s*(.+)/,
+            /\/\/\s*@file\s+(.+)/,
+            /#\s*File:\s*(.+)/,
+            /<!--\s*File:\s*(.+)\s*-->/,
+            /\/\*\s*File:\s*(.+)\s*\*\//,
+            /\/\/\s*(.+\.(js|ts|py|java|cpp|html|css|json|sql|sh|yml|md|php|rb|go|rs|swift))/i
+        ];
+        
+        for (const pattern of patterns) {
+            const match = code.match(pattern);
+            if (match) {
+                return match[1].trim();
+            }
+        }
+        
+        // Try to extract class or function names for filename
+        if (language === 'java' || language === 'typescript' || language === 'javascript') {
+            const classMatch = code.match(/(?:export\s+)?(?:default\s+)?class\s+(\w+)/);
+            if (classMatch) {
+                const ext = language === 'java' ? 'java' : (language === 'typescript' ? 'ts' : 'js');
+                return `${classMatch[1]}.${ext}`;
+            }
+        }
+        
+        if (language === 'python') {
+            const classMatch = code.match(/class\s+(\w+)/);
+            if (classMatch) {
+                return `${classMatch[1].toLowerCase()}.py`;
+            }
+        }
+        
+        return null;
+    }
+
+    function showCodeActionFeedback(button, message, type = 'info') {
+        if (!button) return;
+        
+        const originalContent = button.innerHTML;
+        const originalTitle = button.title;
+        
+        // Update button
+        button.innerHTML = message;
+        button.title = message;
+        button.classList.add('feedback', type);
+        
+        // Reset after delay
+        setTimeout(() => {
+            button.innerHTML = originalContent;
+            button.title = originalTitle;
+            button.classList.remove('feedback', 'info', 'success', 'error');
+        }, 2000);
+    }
 
     function handleInputKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -597,6 +754,24 @@
 
         metadataDiv.innerHTML = metadataHTML;
 
+        // Add copy message button for assistant messages
+        if (!isUser) {
+            const copyMessageBtn = document.createElement('button');
+            copyMessageBtn.className = 'copy-message-btn absolute top-2 right-2 opacity-0 hover:opacity-100 transition-opacity duration-200 p-1 rounded bg-slate-700/50 hover:bg-slate-600 text-slate-300 hover:text-white';
+            copyMessageBtn.innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+            `;
+            copyMessageBtn.title = 'Copy message';
+            copyMessageBtn.onclick = () => copyMessage(message.content);
+            
+            contentWrapper.style.position = 'relative';
+            contentWrapper.appendChild(copyMessageBtn);
+        }
+
+        metadataDiv.innerHTML = metadataHTML;
+
         contentWrapper.appendChild(contentDiv);
         contentWrapper.appendChild(metadataDiv);
         messageDiv.appendChild(contentWrapper);
@@ -604,49 +779,180 @@
         return messageDiv;
     }
 
+    // Global function to copy entire message
+    window.copyMessage = async function(content) {
+        // Strip HTML tags for plain text copy
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+        
+        try {
+            await navigator.clipboard.writeText(plainText);
+            showNotification('Message copied to clipboard', 'success');
+        } catch (err) {
+            // Fallback
+            const textArea = document.createElement('textarea');
+            textArea.value = plainText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showNotification('Message copied to clipboard', 'success');
+        }
+    }
+
     function processMarkdownWithAgentic(content) {
         // Enhanced markdown processing with agentic capabilities
         let processed = content;
 
-        // Code blocks with agentic actions
+        // Code blocks with agentic actions and language detection
         processed = processed.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, language, code) => {
-            const lang = language || '';
+            const detectedLang = language || detectCodeLanguage(code);
             const codeId = 'code_' + Math.random().toString(36).substr(2, 9);
             const trimmedCode = code.trim();
             const escapedCode = escapeHtml(trimmedCode);
-            const safeCode = trimmedCode.replace(/`/g, '\\`').replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const safeCode = JSON.stringify(trimmedCode); // Better escaping
+            
+            // Check if this looks like a file modification (contains function names, imports, etc.)
+            const isFileEdit = detectFileEdit(trimmedCode);
+            const hasFilePath = /\/\/\s*File:\s*(.+)|#\s*File:\s*(.+)|<!--\s*File:\s*(.+)\s*-->/.test(trimmedCode);
             
             return `
-                <div class="code-block-container" data-code-id="${codeId}">
-                    <pre><code class="language-${lang}">${escapedCode}</code></pre>
-                    <div class="code-actions">
-                        <button class="code-action-btn" onclick="copyCode('${codeId}')" title="Copy to clipboard">
-                            📋
-                        </button>
-                        <button class="code-action-btn" onclick="applyCode('${codeId}', \`${safeCode}\`, '${lang}')" title="Apply to current file">
-                            ✨
-                        </button>
-                        <button class="code-action-btn" onclick="createFile('${codeId}', \`${safeCode}\`, '${lang}')" title="Create new file">
-                            📄
-                        </button>
+                <div class="code-block-container" data-code-id="${codeId}" data-language="${detectedLang}">
+                    <div class="code-header">
+                        <div class="code-language">${detectedLang || 'code'}</div>
+                        <div class="code-actions">
+                            <button class="code-action-btn copy-btn" onclick="copyCode('${codeId}')" title="Copy to clipboard">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                            ${isFileEdit || hasFilePath ? `
+                                <button class="code-action-btn apply-btn" onclick="applyCode('${codeId}', ${safeCode}, '${detectedLang}')" title="Apply to current file">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            ` : ''}
+                            <button class="code-action-btn create-btn" onclick="createFile('${codeId}', ${safeCode}, '${detectedLang}')" title="Create new file">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
+                    <pre><code class="language-${detectedLang}">${escapedCode}</code></pre>
                 </div>
             `;
         });
 
-        // Inline code - now handled by CSS
-        processed = processed.replace(/`([^`]+)`/g, '<code>$1</code>');
+        // Enhanced inline code with better formatting
+        processed = processed.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
 
-        // Bold
-        processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Headers
+        processed = processed.replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-slate-200 mt-4 mb-2">$1</h3>');
+        processed = processed.replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold text-slate-100 mt-6 mb-3">$1</h2>');
+        processed = processed.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-slate-100 mt-8 mb-4">$1</h1>');
 
-        // Italic
-        processed = processed.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        // Lists with better formatting
+        processed = processed.replace(/^\s*[-*]\s+(.*$)/gim, '<li class="ml-4 text-slate-200">• $1</li>');
+        processed = processed.replace(/^\s*\d+\.\s+(.*$)/gim, '<li class="ml-4 text-slate-200 list-decimal">$1</li>');
 
-        // Line breaks
+        // Bold and italic
+        processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-slate-100">$1</strong>');
+        processed = processed.replace(/\*(.*?)\*/g, '<em class="italic text-slate-300">$1</em>');
+
+        // Links
+        processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">$1</a>');
+
+        // Blockquotes
+        processed = processed.replace(/^>\s+(.*$)/gim, '<blockquote class="border-l-4 border-blue-500 pl-4 italic text-slate-300 bg-slate-800/30 py-2 my-2">$1</blockquote>');
+
+        // Line breaks (preserve double line breaks as paragraphs)
+        processed = processed.replace(/\n\n/g, '</p><p class="mb-3">');
         processed = processed.replace(/\n/g, '<br>');
+        
+        // Wrap in paragraph if not already wrapped
+        if (!processed.startsWith('<')) {
+            processed = '<p class="mb-3">' + processed + '</p>';
+        }
 
         return processed;
+    }
+
+    function detectCodeLanguage(code) {
+        const trimmed = code.trim();
+        
+        // Check for specific patterns
+        if (trimmed.includes('import ') && trimmed.includes('from ') || trimmed.includes('export ')) {
+            if (trimmed.includes('interface ') || trimmed.includes(': string') || trimmed.includes(': number')) {
+                return 'typescript';
+            }
+            return 'javascript';
+        }
+        
+        if (trimmed.includes('def ') || trimmed.includes('import ') && trimmed.includes('as ')) {
+            return 'python';
+        }
+        
+        if (trimmed.includes('public class ') || trimmed.includes('private ') || trimmed.includes('System.out')) {
+            return 'java';
+        }
+        
+        if (trimmed.includes('#include') || trimmed.includes('std::')) {
+            return 'cpp';
+        }
+        
+        if (trimmed.includes('func ') || trimmed.includes('package main')) {
+            return 'go';
+        }
+        
+        if (trimmed.includes('fn ') || trimmed.includes('let mut ')) {
+            return 'rust';
+        }
+        
+        if (trimmed.includes('<!DOCTYPE') || trimmed.includes('<html')) {
+            return 'html';
+        }
+        
+        if (trimmed.includes('{') && (trimmed.includes('color:') || trimmed.includes('margin:'))) {
+            return 'css';
+        }
+        
+        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+            try {
+                JSON.parse(trimmed);
+                return 'json';
+            } catch (e) {}
+        }
+        
+        if (trimmed.includes('SELECT ') || trimmed.includes('INSERT ') || trimmed.includes('UPDATE ')) {
+            return 'sql';
+        }
+        
+        if (trimmed.includes('#!/bin/bash') || trimmed.includes('echo ') || trimmed.includes('cd ')) {
+            return 'bash';
+        }
+        
+        return 'text';
+    }
+
+    function detectFileEdit(code) {
+        // Detect if code looks like a file modification
+        const patterns = [
+            /function\s+\w+\s*\(/,
+            /class\s+\w+/,
+            /interface\s+\w+/,
+            /import\s+.*from/,
+            /export\s+(default\s+)?(function|class|const|let)/,
+            /@\w+\(/,  // Decorators
+            /def\s+\w+\s*\(/,  // Python functions
+            /public\s+(class|interface|enum)/,  // Java/C# 
+            /#include\s*</,  // C/C++ includes
+            /package\s+\w+/  // Go/Java packages
+        ];
+        
+        return patterns.some(pattern => pattern.test(code));
     }
 
     function escapeHtml(text) {
@@ -819,8 +1125,26 @@
             const div = document.createElement('div');
             div.className = 'bg-slate-800/40 border border-slate-700/50 rounded-lg p-3 mb-3';
 
-            const models = settings.providerModels[provider] || [];
-            const currentModel = settings.selectedModels?.[provider] || models[0] || 'Not selected';
+            const allModels = settings.providerModels[provider] || [];
+            const baseModels = settings.allProviders ? Array.from(settings.allProviders).find(p => p === provider) ? 
+                Array.from(new Set(allModels.filter(model => !settings.customModels?.[provider]?.includes(model)))) : [] : [];
+            const customProviderModels = settings.customModels?.[provider] || [];
+            const currentModel = settings.selectedModels?.[provider] || allModels[0] || 'Not selected';
+
+            // Create model options with sections
+            const baseModelOptions = baseModels.length > 0 ? 
+                '<optgroup label="Official Models">' +
+                baseModels.map(model => 
+                    `<option value="${model}" ${model === currentModel ? 'selected' : ''} class="bg-slate-800 text-slate-100">${model}</option>`
+                ).join('') +
+                '</optgroup>' : '';
+            
+            const customModelOptions = customProviderModels.length > 0 ? 
+                '<optgroup label="Custom Models">' +
+                customProviderModels.map(model => 
+                    `<option value="${model}" ${model === currentModel ? 'selected' : ''} class="bg-slate-800 text-slate-100">${model}</option>`
+                ).join('') +
+                '</optgroup>' : '';
 
             div.innerHTML = `
                 <div class="flex items-center justify-between mb-2">
@@ -830,19 +1154,31 @@
                 <div class="space-y-2">
                     <label class="block text-xs font-medium text-slate-300">Model:</label>
                     <select class="model-select w-full bg-slate-800 border border-slate-600 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all" data-provider="${provider}">
-                        ${models.map(model => 
-                            `<option value="${model}" ${model === currentModel ? 'selected' : ''} class="bg-slate-800 text-slate-100">${model}</option>`
-                        ).join('')}
-                        <option value="custom" class="bg-slate-800 text-slate-100">+ Custom Model...</option>
+                        ${baseModelOptions}
+                        ${customModelOptions}
+                        <option value="custom" class="bg-slate-800 text-slate-100">+ Add Custom Model...</option>
+                        ${customProviderModels.length > 0 ? '<option value="manage-custom" class="bg-slate-800 text-slate-100">🗑️ Manage Custom Models...</option>' : ''}
                     </select>
                 </div>
                 <div class="custom-model-input hidden space-y-2">
                     <label class="block text-xs font-medium text-slate-300">Custom Model Name:</label>
                     <div class="flex gap-2">
                         <input type="text" class="custom-model-name flex-1 bg-slate-800/80 border border-slate-700/50 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all" placeholder="Enter model name..." />
-                        <button class="set-custom-model px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-md transition-all duration-200 text-sm">Set</button>
+                        <button class="set-custom-model px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-md transition-all duration-200 text-sm">Add</button>
                         <button class="cancel-custom-model px-3 py-2 text-slate-300 hover:text-slate-100 hover:bg-slate-800/80 rounded-md transition-all duration-200 text-sm">Cancel</button>
                     </div>
+                </div>
+                <div class="manage-custom-models hidden space-y-2">
+                    <label class="block text-xs font-medium text-slate-300">Custom Models:</label>
+                    <div class="custom-models-list space-y-1">
+                        ${customProviderModels.map(model => `
+                            <div class="flex items-center justify-between p-2 bg-slate-800/60 rounded-md">
+                                <span class="text-sm text-slate-200">${model}</span>
+                                <button class="delete-custom-model text-red-400 hover:text-red-300 text-xs" data-model="${model}">Delete</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="close-manage-custom px-3 py-2 text-slate-300 hover:text-slate-100 hover:bg-slate-800/80 rounded-md transition-all duration-200 text-sm">Done</button>
                 </div>
             `;
 
@@ -852,13 +1188,21 @@
             const customModelName = div.querySelector('.custom-model-name');
             const setCustomButton = div.querySelector('.set-custom-model');
             const cancelCustomButton = div.querySelector('.cancel-custom-model');
+            const manageCustomModels = div.querySelector('.manage-custom-models');
+            const closeManageCustomButton = div.querySelector('.close-manage-custom');
 
             modelSelect.addEventListener('change', (e) => {
                 if (e.target.value === 'custom') {
                     customModelInput.classList.remove('hidden');
+                    manageCustomModels.classList.add('hidden');
                     customModelName.focus();
+                } else if (e.target.value === 'manage-custom') {
+                    manageCustomModels.classList.remove('hidden');
+                    customModelInput.classList.add('hidden');
+                    modelSelect.value = currentModel; // Reset selection
                 } else {
                     customModelInput.classList.add('hidden');
+                    manageCustomModels.classList.add('hidden');
                     vscode.postMessage({
                         type: 'setModel',
                         provider: provider,
@@ -884,6 +1228,24 @@
                 customModelInput.classList.add('hidden');
                 customModelName.value = '';
                 modelSelect.value = currentModel; // Reset to current selection
+            });
+
+            closeManageCustomButton.addEventListener('click', () => {
+                manageCustomModels.classList.add('hidden');
+            });
+
+            // Handle delete custom model buttons
+            div.querySelectorAll('.delete-custom-model').forEach(button => {
+                button.addEventListener('click', () => {
+                    const modelToDelete = button.dataset.model;
+                    if (confirm(`Delete custom model "${modelToDelete}"?`)) {
+                        vscode.postMessage({
+                            type: 'deleteCustomModel',
+                            provider: provider,
+                            model: modelToDelete
+                        });
+                    }
+                });
             });
 
             customModelName.addEventListener('keypress', (e) => {
@@ -913,14 +1275,16 @@
             return;
         }
 
-        const models = settings.providerModels[activeProvider] || [];
+        const allModels = settings.providerModels[activeProvider] || [];
         const currentModel = settings.selectedModels?.[activeProvider];
+        const customProviderModels = settings.customModels?.[activeProvider] || [];
 
-        // Add predefined models
-        models.forEach(model => {
+        // Add all models (predefined + custom)
+        allModels.forEach(model => {
             const option = document.createElement('option');
             option.value = `${activeProvider}:${model}`;
-            option.textContent = `${activeProvider}: ${model}`;
+            const isCustom = customProviderModels.includes(model);
+            option.textContent = `${activeProvider}: ${model}${isCustom ? ' (custom)' : ''}`;
             option.selected = model === currentModel;
             select.appendChild(option);
         });
@@ -1111,9 +1475,70 @@
                 }
             }
             
-            // Clear pending application
             window.pendingCodeApplication = null;
         }
+        
+        // Handle new pendingApplyCode
+        if (window.pendingApplyCode) {
+            const { code, language, codeId } = window.pendingApplyCode;
+            const container = document.querySelector(`[data-code-id="${codeId}"]`);
+            
+            if (fileInfo.filePath) {
+                // Show confirmation dialog with file info
+                const confirmMessage = `Apply code to file: ${fileInfo.fileName}?\n\nThis will replace the current content.`;
+                
+                if (confirm(confirmMessage)) {
+                    vscode.postMessage({
+                        type: 'applyCodeToFile',
+                        filePath: fileInfo.filePath,
+                        content: code
+                    });
+                    showCodeActionFeedback(container?.querySelector('.apply-btn'), `Applied to ${fileInfo.fileName}`, 'success');
+                } else {
+                    showCodeActionFeedback(container?.querySelector('.apply-btn'), 'Cancelled', 'error');
+                }
+            } else {
+                // No active file, ask to create new one
+                const fileName = prompt('No active file. Enter filename to create new file:', extractFileName(code, language) || `new_file.${getFileExtension(language)}`);
+                if (fileName && fileName.trim()) {
+                    vscode.postMessage({
+                        type: 'createNewFile',
+                        fileName: fileName.trim(),
+                        content: code,
+                        language: language
+                    });
+                    showCodeActionFeedback(container?.querySelector('.apply-btn'), `Created ${fileName.trim()}`, 'success');
+                } else {
+                    showCodeActionFeedback(container?.querySelector('.apply-btn'), 'Cancelled', 'error');
+                }
+            }
+            
+            window.pendingApplyCode = null;
+        }
+    }
+
+    function getFileExtension(language) {
+        const extensions = {
+            'javascript': 'js',
+            'typescript': 'ts',
+            'python': 'py',
+            'java': 'java',
+            'cpp': 'cpp',
+            'c': 'c',
+            'html': 'html',
+            'css': 'css',
+            'json': 'json',
+            'sql': 'sql',
+            'bash': 'sh',
+            'yaml': 'yml',
+            'markdown': 'md',
+            'php': 'php',
+            'ruby': 'rb',
+            'go': 'go',
+            'rust': 'rs',
+            'swift': 'swift'
+        };
+        return extensions[language] || 'txt';
     }
 
     function renderMCPServers() {
@@ -1225,12 +1650,25 @@
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.textContent = message;
+        notification.style.cursor = 'pointer';
+        notification.title = 'Click to dismiss';
         
         document.body.appendChild(notification);
 
-        setTimeout(() => {
-            notification.remove();
+        // Auto remove after 3 seconds
+        const timeout = setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
         }, 3000);
+        
+        // Allow manual dismiss by clicking
+        notification.addEventListener('click', () => {
+            clearTimeout(timeout);
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        });
     }
 
     // Initialize the application when DOM is loaded

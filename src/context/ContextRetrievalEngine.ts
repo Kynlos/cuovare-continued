@@ -655,8 +655,8 @@ export class ContextRetrievalEngine {
             const aNameMatch = path.basename(a.path).toLowerCase().includes(queryLower);
             const bNameMatch = path.basename(b.path).toLowerCase().includes(queryLower);
             
-            if (aNameMatch && !bNameMatch) return -1;
-            if (!aNameMatch && bNameMatch) return 1;
+            if (aNameMatch && !bNameMatch) {return -1;}
+            if (!aNameMatch && bNameMatch) {return 1;}
             
             // Tertiary sort by file size (prefer smaller files)
             return a.content.length - b.content.length;
@@ -664,7 +664,7 @@ export class ContextRetrievalEngine {
     }
 
     private calculateOverallRelevance(files: ContextualFile[]): number {
-        if (files.length === 0) return 0;
+        if (files.length === 0) {return 0;}
         
         const totalScore = files.reduce((sum, file) => sum + file.relevanceScore, 0);
         const avgScore = totalScore / files.length;

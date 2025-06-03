@@ -107,6 +107,30 @@ html {
     overflow: hidden;
     background: rgb(15 23 42);
     border: 1px solid rgb(51 65 85 / 0.3);
+    transition: all 0.2s ease;
+}
+
+.code-block-container:hover {
+    border-color: rgb(59 130 246 / 0.4);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.2);
+}
+
+/* Code Header */
+.code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: rgb(30 41 59 / 0.8);
+    border-bottom: 1px solid rgb(51 65 85 / 0.3);
+}
+
+.code-language {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgb(148 163 184);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .code-block-container pre {
@@ -133,18 +157,10 @@ html {
 
 /* Code Action Buttons */
 .code-actions {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
     display: flex;
     gap: 0.375rem;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    z-index: 10;
-}
-
-.code-block-container:hover .code-actions {
     opacity: 1;
+    z-index: 10;
 }
 
 .code-action-btn {
@@ -160,7 +176,9 @@ html {
     border-radius: 0.375rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    position: relative;
+    overflow: hidden;
 }
 
 .code-action-btn:hover {
@@ -175,16 +193,126 @@ html {
     transform: translateY(0);
 }
 
+/* Code Action Button States */
+.code-action-btn.copy-btn:hover {
+    background: rgb(34 197 94);
+    border-color: rgb(34 197 94);
+}
+
+.code-action-btn.apply-btn:hover {
+    background: rgb(59 130 246);
+    border-color: rgb(59 130 246);
+}
+
+.code-action-btn.create-btn:hover {
+    background: rgb(168 85 247);
+    border-color: rgb(168 85 247);
+}
+
+/* Feedback States */
+.code-action-btn.feedback {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.code-action-btn.feedback.success {
+    background: rgb(34 197 94);
+    border-color: rgb(34 197 94);
+    color: white;
+}
+
+.code-action-btn.feedback.error {
+    background: rgb(239 68 68);
+    border-color: rgb(239 68 68);
+    color: white;
+}
+
+.code-action-btn.feedback.info {
+    background: rgb(59 130 246);
+    border-color: rgb(59 130 246);
+    color: white;
+}
+
 /* Inline Code */
-code:not(pre code) {
+code:not(pre code), .inline-code {
     background: rgb(51 65 85 / 0.4);
     color: rgb(147 197 253);
     padding: 0.125rem 0.375rem;
     border-radius: 0.25rem;
-    font-family: var(--font-mono, monospace);
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
     font-size: 0.8125rem;
     font-weight: 500;
     border: 1px solid rgb(51 65 85 / 0.3);
+    transition: all 0.15s ease;
+}
+
+code:not(pre code):hover, .inline-code:hover {
+    background: rgb(51 65 85 / 0.6);
+    border-color: rgb(59 130 246 / 0.4);
+}
+
+/* Enhanced Text Formatting */
+.prose h1, .prose h2, .prose h3 {
+    line-height: 1.3;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.prose h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: rgb(248 250 252);
+}
+
+.prose h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: rgb(241 245 249);
+}
+
+.prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: rgb(226 232 240);
+}
+
+.prose p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.prose ul, .prose ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.prose li {
+    margin-bottom: 0.25rem;
+    line-height: 1.5;
+}
+
+.prose blockquote {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-left: 4px solid rgb(59 130 246);
+    background: rgb(30 41 59 / 0.3);
+    border-radius: 0 0.5rem 0.5rem 0;
+    font-style: italic;
+    color: rgb(203 213 225);
+}
+
+.prose a {
+    color: rgb(96 165 250);
+    text-decoration: underline;
+    text-decoration-color: rgb(96 165 250 / 0.3);
+    transition: all 0.2s ease;
+}
+
+.prose a:hover {
+    color: rgb(147 197 253);
+    text-decoration-color: rgb(147 197 253);
 }
 
 /* Autocomplete Dropdown */
@@ -401,11 +529,28 @@ code:not(pre code) {
     }
 }
 
+/* Copy Message Button */
+.copy-message-btn {
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+
+.copy-message-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+}
+
+/* Show copy button on message hover */
+.prose:hover .copy-message-btn {
+    opacity: 1 !important;
+}
+
 /* Force Hardware Acceleration for Smooth Animations */
 .code-action-btn,
 .file-reference,
 .autocomplete-item,
-.notification {
+.notification,
+.copy-message-btn {
     transform: translateZ(0);
     will-change: transform;
 }

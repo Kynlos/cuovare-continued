@@ -90,7 +90,7 @@ export class AIProviderManager {
         this.providers.set('grok', {
             name: 'Grok',
             baseUrl: 'https://api.x.ai/v1/chat/completions',
-            models: ['grok-beta', 'grok-vision-beta'],
+            models: ['grok-2-1212', 'grok-2-vision-1212', 'grok-beta', 'grok-vision-beta'],
             headers: (apiKey: string) => ({
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
@@ -201,11 +201,20 @@ export class AIProviderManager {
         }
 
         const targetModel = model || selectedModels[targetProvider] || provider.models[0];
+        const requestData = provider.formatRequest(messages, targetModel);
+        const headers = provider.headers(apiKey);
+        
+        // Debug logging for Grok to help troubleshoot
+        if (targetProvider === 'grok') {
+            console.log('Grok API Request:', {
+                url: provider.baseUrl,
+                model: targetModel,
+                requestData: JSON.stringify(requestData, null, 2),
+                headers: { ...headers, Authorization: '[REDACTED]' }
+            });
+        }
         
         try {
-            const requestData = provider.formatRequest(messages, targetModel);
-            const headers = provider.headers(apiKey);
-
             const response = await axios.post(provider.baseUrl, requestData, { headers });
             const content = provider.parseResponse(response);
 
@@ -216,8 +225,28 @@ export class AIProviderManager {
             };
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const message = error.response?.data?.error?.message || error.message;
-                throw new Error(`${provider.name} API Error: ${message}`);
+                // Enhanced error logging for debugging
+                console.error(`${provider.name} API Error:`, {
+                    status: error.response?.status,
+                    statusText: error.response?.statusText,
+                    data: error.response?.data,
+                    url: provider.baseUrl
+                });
+                
+                const errorData = error.response?.data;
+                let message = error.message;
+                
+                if (errorData) {
+                    if (errorData.error?.message) {
+                        message = errorData.error.message;
+                    } else if (errorData.message) {
+                        message = errorData.message;
+                    } else if (typeof errorData === 'string') {
+                        message = errorData;
+                    }
+                }
+                
+                throw new Error(`${provider.name} API Error: ${message} (Status: ${error.response?.status})`);
             }
             throw error;
         }

@@ -72,7 +72,7 @@ export class ContextIntegration {
      * Get context suggestions for autocomplete
      */
     public async getAutocompleteSuggestions(query: string): Promise<string[]> {
-        if (query.length < 2) return [];
+        if (query.length < 2) {return [];}
 
         const context = await this.engine.retrieveContext(query, {
             maxFiles: 5,

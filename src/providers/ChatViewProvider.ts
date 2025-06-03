@@ -109,6 +109,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 case 'showSettings':
                     this.showSettings();
                     break;
+                case 'deleteCustomModel':
+                    await this.deleteCustomModel(data.provider, data.model);
+                    break;
             }
         });
 
@@ -391,10 +394,50 @@ ${code}
         this._view?.webview.postMessage({ type: 'showSettings' });
     }
 
+    private async deleteCustomModel(provider: string, model: string): Promise<void> {
+        const config = vscode.workspace.getConfiguration('cuovare');
+        const customModels = config.get<Record<string, string[]>>('customModels', {});
+        
+        if (customModels[provider]) {
+            const index = customModels[provider].indexOf(model);
+            if (index > -1) {
+                customModels[provider].splice(index, 1);
+                
+                // If no custom models left for this provider, remove the array
+                if (customModels[provider].length === 0) {
+                    delete customModels[provider];
+                }
+                
+                await config.update('customModels', customModels, vscode.ConfigurationTarget.Global);
+                
+                // If the deleted model was currently selected, reset to first available model
+                const selectedModels = config.get<Record<string, string>>('selectedModels', {});
+                if (selectedModels[provider] === model) {
+                    const allProvidersMap = this._aiManager.getAllProviders();
+                    const providerData = allProvidersMap.get(provider);
+                    const defaultModel = providerData?.models[0] || '';
+                    
+                    if (defaultModel) {
+                        selectedModels[provider] = defaultModel;
+                        await config.update('selectedModels', selectedModels, vscode.ConfigurationTarget.Global);
+                    }
+                }
+                
+                this._view?.webview.postMessage({
+                    type: 'notification',
+                    message: `Custom model "${model}" deleted`
+                });
+                
+                await this.sendSettings();
+            }
+        }
+    }
+
     private async sendSettings(): Promise<void> {
         const config = vscode.workspace.getConfiguration('cuovare');
         const defaultProvider = config.get<string>('defaultProvider', 'openai');
         const selectedModels = config.get<Record<string, string>>('selectedModels', {});
+        const customModels = config.get<Record<string, string[]>>('customModels', {});
         const mcpServers = config.get<any[]>('mcpServers', []);
         
         const availableProviders = await this._aiManager.getAvailableProviders();
@@ -409,10 +452,12 @@ ${code}
             apiKeyStatus[provider] = await this._aiManager.hasApiKey(provider);
         }
 
-        // Get models for each provider
+        // Get models for each provider (including custom models)
         const providerModels: Record<string, string[]> = {};
         for (const [providerName, providerData] of allProvidersMap) {
-            providerModels[providerName] = providerData.models;
+            const baseModels = [...providerData.models];
+            const customProviderModels = customModels[providerName] || [];
+            providerModels[providerName] = [...baseModels, ...customProviderModels];
         }
 
         this._view?.webview.postMessage({
@@ -421,6 +466,7 @@ ${code}
                 apiKeyStatus,
                 defaultProvider,
                 selectedModels,
+                customModels,
                 availableProviders,
                 allProviders,
                 providerModels,
@@ -460,6 +506,24 @@ ${code}
         selectedModels[provider] = model;
         
         await config.update('selectedModels', selectedModels, vscode.ConfigurationTarget.Global);
+        
+        // If this is a custom model (not in predefined list), save it
+        const allProvidersMap = this._aiManager.getAllProviders();
+        const providerData = allProvidersMap.get(provider);
+        
+        if (providerData && !providerData.models.includes(model)) {
+            // This is a custom model, save it
+            const customModels = config.get<Record<string, string[]>>('customModels', {});
+            if (!customModels[provider]) {
+                customModels[provider] = [];
+            }
+            
+            // Add to custom models if not already present
+            if (!customModels[provider].includes(model)) {
+                customModels[provider].push(model);
+                await config.update('customModels', customModels, vscode.ConfigurationTarget.Global);
+            }
+        }
         
         this._view?.webview.postMessage({
             type: 'notification',
@@ -715,7 +779,7 @@ ${code}
         );
 
         const highlightCssUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'highlight.js', 'styles', 'vs2015.css')
+            vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'highlight.js', 'styles', 'github-dark.css')
         );
 
         return `
@@ -724,7 +788,7 @@ ${code}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com; script-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com; script-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com 'unsafe-eval';">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -744,6 +808,7 @@ ${code}
     </script>
     <link href="${highlightCssUri}" rel="stylesheet">
     <link href="${styleUri}" rel="stylesheet">
+    <script src="${highlightJsUri}"></script>
     <title>Cuovare Chat</title>
 </head>
 <body>

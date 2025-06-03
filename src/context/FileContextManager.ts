@@ -133,7 +133,7 @@ export class FileContextManager {
             const sortedUris = this.prioritizeFiles(fileUris);
 
             for (const uri of sortedUris) {
-                if (files.length >= maxFiles) break;
+                if (files.length >= maxFiles) {break;}
 
                 const fileContext = await this.createFileContext(uri);
                 if (fileContext) {
@@ -178,8 +178,8 @@ export class FileContextManager {
             }
             
             // Prefer TypeScript over JavaScript
-            if (nameA.endsWith('.ts') && nameB.endsWith('.js')) return -1;
-            if (nameA.endsWith('.js') && nameB.endsWith('.ts')) return 1;
+            if (nameA.endsWith('.ts') && nameB.endsWith('.js')) {return -1;}
+            if (nameA.endsWith('.js') && nameB.endsWith('.ts')) {return 1;}
             
             // Prefer shorter paths (closer to root)
             const depthA = a.fsPath.split(path.sep).length;
