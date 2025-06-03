@@ -692,15 +692,367 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview): string {
-        // Implementation - return the enhanced HTML with tool UI
-        return `<!DOCTYPE html>
-<html>
+        const styleUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'resources', 'styles.css')
+        );
+
+        const scriptUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'resources', 'main.js')
+        );
+
+        const highlightJsUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'highlight.js', 'lib', 'index.js')
+        );
+
+        const highlightCssUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'highlight.js', 'styles', 'github-dark.css')
+        );
+
+        return `
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Cuovare Enhanced Chat</title>
-    <!-- Enhanced HTML with tool support UI -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com; script-src ${webview.cspSource} 'unsafe-inline' https://cdn.tailwindcss.com 'unsafe-eval';">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        vscode: {
+                            bg: 'var(--vscode-editor-background)',
+                            fg: 'var(--vscode-editor-foreground)',
+                            accent: 'var(--vscode-accent, #007acc)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="${highlightCssUri}" rel="stylesheet">
+    <link href="${styleUri}" rel="stylesheet">
+    <script src="${highlightJsUri}"></script>
+    <title>Cuovare Chat</title>
 </head>
 <body>
-    <!-- Tool-enhanced chat interface -->
+    <div id="app" class="h-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
+        <!-- Header -->
+        <header id="header" class="flex-shrink-0 flex items-center justify-between px-2 py-2 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800/50">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center">
+                    <span class="text-white text-xs font-bold">BC</span>
+                </div>
+                <h1 class="text-sm font-semibold text-slate-100 truncate">Cuovare</h1>
+                <select id="quickModelSelect"
+                    class="bg-slate-800 border border-slate-600 text-slate-100 text-xs rounded px-2 py-1 min-w-0 flex-1 max-w-[120px] focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    title="Model">
+                    <option value="" class="bg-slate-800 text-slate-100">Select...</option>
+                </select>
+            </div>
+
+            <nav class="flex items-center gap-0.5">
+                <button id="historyBtn"
+                    class="flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200"
+                    title="History">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                </button>
+                <button id="newChatBtn"
+                    class="flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200"
+                    title="New">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </button>
+                <button id="settingsBtn"
+                    class="flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200"
+                    title="Settings">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </button>
+            </nav>
+        </header>
+
+        <!-- Chat Container -->
+        <main id="chatContainer" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div id="chatMessages" class="flex-1 overflow-y-auto px-2 py-3 space-y-3 scroll-smooth"></div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="hidden flex items-center justify-center py-2 px-3">
+                <div class="flex items-center gap-2 text-slate-400">
+                    <div class="flex gap-1">
+                        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 0ms"></div>
+                        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 150ms"></div>
+                        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 300ms"></div>
+                    </div>
+                    <span class="text-xs">Thinking...</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Input Container -->
+        <footer id="inputContainer" class="flex-shrink-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-800/50 p-2">
+            <!-- Context Info -->
+            <div id="contextInfo" class="hidden mb-2 p-2 bg-slate-800/50 border border-slate-700/50 rounded-md">
+                <div class="flex items-center gap-2 text-xs text-slate-400">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Context loaded</span>
+                </div>
+            </div>
+
+            <!-- File References -->
+            <div id="fileReferences" class="hidden mb-2">
+                <div class="flex items-center gap-1 mb-1">
+                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-xs font-medium text-slate-400">Files:</span>
+                </div>
+                <div class="flex flex-wrap gap-1" id="fileReferencesList"></div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="relative">
+                <div class="relative flex gap-2">
+                    <div class="relative flex-1">
+                        <textarea id="messageInput"
+                            class="w-full bg-slate-800/80 border border-slate-700/50 rounded-lg px-3 py-2 pr-10 text-slate-100 placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm leading-relaxed min-h-[36px] max-h-24"
+                            placeholder="Ask me anything... Use @filename to reference files"
+                            rows="1"></textarea>
+
+                        <!-- File Autocomplete Dropdown -->
+                        <div id="autocompleteDropdown" class="absolute bottom-full left-0 right-0 mb-1 bg-slate-800/95 backdrop-blur-sm border border-slate-700/50 rounded-md shadow-2xl max-h-32 overflow-y-auto hidden z-50">
+                            <!-- Populated dynamically -->
+                        </div>
+
+                        <!-- Character count (optional) -->
+                        <div class="absolute bottom-1 right-2 text-xs text-slate-500 pointer-events-none hidden" id="charCount">
+                            0/2000
+                        </div>
+                    </div>
+
+                    <button id="sendBtn"
+                        class="flex-shrink-0 flex items-center justify-center w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed rounded-lg transition-all duration-200 group"
+                        disabled>
+                        <svg class="w-4 h-4 text-white group-disabled:text-slate-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </footer>
+
+        <!-- History Panel -->
+        <aside id="historyPanel" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50">
+            <div class="flex h-full">
+                <div class="w-full max-w-md bg-slate-900/95 backdrop-blur-sm border-r border-slate-800/50 shadow-2xl">
+                    <!-- Header -->
+                    <header class="flex items-center justify-between p-4 border-b border-slate-800/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-lg font-semibold text-slate-100">Chat History</h2>
+                        </div>
+                        <button id="closeHistory"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </header>
+
+                    <!-- Content -->
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <div id="sessionsList" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- Backdrop -->
+                <div class="flex-1 cursor-pointer" onclick="document.getElementById('closeHistory').click()"></div>
+            </div>
+        </aside>
+
+        <!-- Settings Panel -->
+        <aside id="settingsPanel" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50">
+            <div class="flex h-full">
+                <div class="w-full bg-slate-900/95 backdrop-blur-sm border-r border-slate-800/50 shadow-2xl flex flex-col">
+                    <!-- Header -->
+                    <header class="flex-shrink-0 flex items-center justify-between p-3 border-b border-slate-800/50">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-md flex items-center justify-center">
+                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-base font-semibold text-slate-100">Settings</h2>
+                        </div>
+                        <button id="closeSettings"
+                            class="flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </header>
+
+                    <!-- Content -->
+                    <div class="flex-1 overflow-y-auto p-3 space-y-3">
+                        <!-- API Keys Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-6 h-6 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-md flex items-center justify-center">
+                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-semibold text-slate-100">API Keys</h3>
+                                    <p class="text-xs text-slate-400">Configure credentials</p>
+                                </div>
+                            </div>
+                            <div id="apiKeysContainer" class="space-y-2"></div>
+                        </section>
+
+                        <!-- AI Providers Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-md flex items-center justify-center">
+                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-semibold text-slate-100">AI Providers</h3>
+                                    <p class="text-xs text-slate-400">Select model & provider</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="space-y-2">
+                                    <label for="providerSelect" class="block text-xs font-medium text-slate-300">Provider</label>
+                                    <select id="providerSelect"
+                                        class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all">
+                                    </select>
+                                </div>
+                                <div id="modelSelectionContainer" class="space-y-2"></div>
+                            </div>
+                        </section>
+
+                        <!-- MCP Servers Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-md flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-slate-100">MCP Servers</h3>
+                                        <p class="text-xs text-slate-400">Protocol integrations</p>
+                                    </div>
+                                </div>
+                                <button id="addMCPServerBtn"
+                                    class="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white rounded-md transition-all duration-200 text-xs">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    <span>Add</span>
+                                </button>
+                            </div>
+                            <div id="mcpServersContainer" class="space-y-2"></div>
+                        </section>
+
+                        <!-- Available Tools Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-6 h-6 bg-gradient-to-br from-pink-500 to-rose-600 rounded-md flex items-center justify-center">
+                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-semibold text-slate-100">Available Tools</h3>
+                                    <p class="text-xs text-slate-400">External capabilities</p>
+                                </div>
+                            </div>
+                            <div id="mcpToolsContainer" class="space-y-2"></div>
+                        </section>
+                    </div>
+                </div>
+
+                <!-- Backdrop -->
+                <div class="flex-1 cursor-pointer" onclick="document.getElementById('closeSettings').click()"></div>
+            </div>
+        </aside>
+
+        <!-- MCP Server Modal -->
+        <div id="mcpServerModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div class="bg-slate-900/95 backdrop-blur-sm border border-slate-700/50 rounded-lg shadow-2xl w-full max-w-sm">
+                <!-- Header -->
+                <div class="flex items-center gap-2 p-4 border-b border-slate-800/50">
+                    <div class="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-md flex items-center justify-center">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-100">Add MCP Server</h3>
+                        <p class="text-xs text-slate-400">Configure new server</p>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-4 space-y-3">
+                    <div class="space-y-1">
+                        <label for="serverName" class="block text-xs font-medium text-slate-300">Server Name</label>
+                        <input id="serverName"
+                            class="w-full bg-slate-800/80 border border-slate-700/50 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
+                            placeholder="e.g., Database Tools" />
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="serverCommand" class="block text-xs font-medium text-slate-300">Command</label>
+                        <input id="serverCommand"
+                            class="w-full bg-slate-800/80 border border-slate-700/50 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all font-mono"
+                            placeholder="e.g., npx" />
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="serverArgs" class="block text-xs font-medium text-slate-300">Arguments</label>
+                        <input id="serverArgs"
+                            class="w-full bg-slate-800/80 border border-slate-700/50 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all font-mono"
+                            placeholder="e.g., @modelcontextprotocol/server-postgres" />
+                        <p class="text-xs text-slate-500">Separate multiple arguments with commas</p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex gap-2 justify-end p-4 border-t border-slate-800/50">
+                    <button id="cancelMCPServer"
+                        class="px-3 py-1.5 text-slate-300 hover:text-slate-100 hover:bg-slate-800/80 rounded-md transition-all duration-200 text-sm">
+                        Cancel
+                    </button>
+                    <button id="saveMCPServer"
+                        class="px-4 py-1.5 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white rounded-md transition-all duration-200 text-sm">
+                        Add Server
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="${scriptUri}"></script>
 </body>
 </html>`;
     }
