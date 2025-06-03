@@ -598,31 +598,144 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     // (For brevity, I'm showing the structure - the actual implementation would include all methods)
 
     private async getContextFiles(fileReferences?: string[]): Promise<any[]> {
-        // Implementation for getting context files
-        return [];
+        const contextFiles: any[] = [];
+        
+        if (fileReferences && fileReferences.length > 0) {
+            for (const ref of fileReferences) {
+                try {
+                    const fileContent = await this._fileManager.getFileContent(ref);
+                    if (fileContent) {
+                        const language = this.detectLanguageFromPath(ref);
+                        contextFiles.push({
+                            path: ref,
+                            content: fileContent,
+                            language: language
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Failed to get context for file: ${ref}`, error);
+                }
+            }
+        }
+        
+        return contextFiles;
+    }
+
+    private detectLanguageFromPath(filePath: string): string {
+        const ext = filePath.split('.').pop()?.toLowerCase();
+        const langMap: Record<string, string> = {
+            'ts': 'typescript',
+            'js': 'javascript',
+            'jsx': 'jsx',
+            'tsx': 'tsx',
+            'py': 'python',
+            'java': 'java',
+            'cpp': 'cpp',
+            'c': 'c',
+            'go': 'go',
+            'rs': 'rust',
+            'php': 'php',
+            'rb': 'ruby',
+            'sh': 'bash',
+            'json': 'json',
+            'xml': 'xml',
+            'html': 'html',
+            'css': 'css',
+            'sql': 'sql',
+            'md': 'markdown',
+            'yml': 'yaml',
+            'yaml': 'yaml'
+        };
+        return langMap[ext || ''] || 'text';
     }
 
     private sendChatHistory(): void {
         this._view?.webview.postMessage({
             type: 'chatHistory',
-            messages: this._chatHistory
+            data: this._chatHistory,
+            isLoading: this._isLoading
         });
     }
 
     private async sendSettings(): Promise<void> {
-        // Implementation for sending settings
+        const config = vscode.workspace.getConfiguration('cuovare');
+        const defaultProvider = config.get<string>('defaultProvider', 'openai');
+        const selectedModels = config.get<Record<string, string>>('selectedModels', {});
+        const customModels = config.get<Record<string, string[]>>('customModels', {});
+        const mcpServers = config.get<any[]>('mcpServers', []);
+
+        const availableProviders = await this._aiManager.getAvailableProviders();
+        const allProviders = Array.from(this._aiManager.getAllProviders().keys());
+        const allProvidersMap = this._aiManager.getAllProviders();
+        const mcpStatus = this._mcpManager.getServerStatus();
+        const mcpTools = this._mcpManager.getAvailableTools();
+
+        // Check which providers have API keys stored
+        const apiKeyStatus: Record<string, boolean> = {};
+        for (const provider of allProviders) {
+            apiKeyStatus[provider] = await this._aiManager.hasApiKey(provider);
+        }
+
+        // Get models for each provider (including custom models)
+        const providerModels: Record<string, string[]> = {};
+        for (const [providerName, providerData] of allProvidersMap) {
+            const baseModels = [...providerData.models];
+            const customProviderModels = customModels[providerName] || [];
+            providerModels[providerName] = [...baseModels, ...customProviderModels];
+        }
+
+        this._view?.webview.postMessage({
+            type: 'settings',
+            data: {
+                apiKeyStatus,
+                defaultProvider,
+                selectedModels,
+                customModels,
+                availableProviders,
+                allProviders,
+                providerModels,
+                mcpServers,
+                mcpStatus: Object.fromEntries(mcpStatus),
+                mcpTools,
+                toolsEnabled: this._toolsEnabled,
+                autoExecuteTools: this._autoExecuteTools
+            }
+        });
     }
 
     private sendSessionList(): void {
-        // Implementation for sending session list
+        const sessions = Array.from(this._sessions.values())
+            .sort((a, b) => b.lastUpdated - a.lastUpdated)
+            .map(session => ({
+                id: session.id,
+                title: session.title,
+                lastUpdated: session.lastUpdated,
+                messageCount: session.messages.length
+            }));
+
+        this._view?.webview.postMessage({
+            type: 'sessionList',
+            data: {
+                sessions,
+                currentSessionId: this._currentSessionId
+            }
+        });
     }
 
     private loadSessions(): void {
-        // Implementation for loading sessions
+        const config = vscode.workspace.getConfiguration('cuovare');
+        const savedSessions = config.get<ChatSession[]>('chatSessions', []);
+        
+        this._sessions.clear();
+        savedSessions.forEach(session => {
+            this._sessions.set(session.id, session);
+        });
     }
 
     private saveSessions(): void {
-        // Implementation for saving sessions
+        const config = vscode.workspace.getConfiguration('cuovare');
+        const sessionsArray = Array.from(this._sessions.values());
+        config.update('chatSessions', sessionsArray, vscode.ConfigurationTarget.Global);
     }
 
     private clearChat(): void {
