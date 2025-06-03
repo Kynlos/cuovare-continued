@@ -88,6 +88,54 @@ export function activate(context: vscode.ExtensionContext) {
             
             await chatViewProvider.reviewCode(text, fileName);
             vscode.commands.executeCommand('workbench.view.extension.cuovare');
+        }),
+
+        vscode.commands.registerCommand('cuovare.debugMCP', async () => {
+            const status = mcpManager.getServerStatus();
+            const tools = mcpManager.getAvailableTools();
+            
+            let statusText = '=== MCP Server Status ===\n\n';
+            
+            if (status.size === 0) {
+                statusText += 'No MCP servers configured.\n\n';
+                statusText += 'To add servers:\n';
+                statusText += '1. Open Cuovare Chat\n';
+                statusText += '2. Click Settings (gear icon)\n';
+                statusText += '3. Go to MCP Servers section\n';
+                statusText += '4. Click "Add" to configure a server\n';
+            } else {
+                status.forEach((serverInfo, serverName) => {
+                    statusText += `${serverName}: ${serverInfo.status}`;
+                    if (serverInfo.tools > 0) {
+                        statusText += ` (${serverInfo.tools} tools)`;
+                    }
+                    if (serverInfo.lastError) {
+                        statusText += ` - Error: ${serverInfo.lastError}`;
+                    }
+                    statusText += '\n';
+                });
+                
+                statusText += `\n=== Available Tools (${tools.length}) ===\n\n`;
+                if (tools.length === 0) {
+                    statusText += 'No tools available. This could mean:\n';
+                    statusText += '• Servers are not connected\n';
+                    statusText += '• Servers don\'t provide any tools\n';
+                    statusText += '• Connection failed during initialization\n\n';
+                    statusText += 'Check the "Cuovare MCP Enhanced" output channel for detailed logs.\n';
+                } else {
+                    tools.forEach(tool => {
+                        statusText += `• ${tool.name}: ${tool.description}\n`;
+                        statusText += `  Server: ${tool.serverName || 'Unknown'}\n\n`;
+                    });
+                }
+            }
+            
+            // Show in a new document
+            const doc = await vscode.workspace.openTextDocument({
+                content: statusText,
+                language: 'plaintext'
+            });
+            await vscode.window.showTextDocument(doc);
         })
     );
 

@@ -989,12 +989,16 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 .filter((arg: string) => arg);
         }
         
-        const newServer = {
+        const newServer: any = {
             name: server.name,
             command: server.command,
             args: processedArgs,
             autoReconnect: true
         };
+        
+        if (server.description) {
+            newServer.description = server.description;
+        }
         
         // Check if server with same name already exists
         const existingIndex = mcpServers.findIndex(s => s.name === server.name);

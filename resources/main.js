@@ -637,15 +637,21 @@
         const name = document.getElementById('serverName').value.trim();
         const command = document.getElementById('serverCommand').value.trim();
         const args = document.getElementById('serverArgs').value.trim().split(',').map(s => s.trim()).filter(s => s);
+        const description = document.getElementById('serverDescription').value.trim();
 
         if (!name || !command) {
             showNotification('Please fill in server name and command', 'error');
             return;
         }
 
+        const server = { name, command, args };
+        if (description) {
+            server.description = description;
+        }
+
         vscode.postMessage({
             type: 'addMCPServer',
-            server: { name, command, args }
+            server
         });
 
         hideMCPServerModal();
@@ -1720,7 +1726,12 @@
             const div = document.createElement('div');
             div.className = 'mcp-server bg-slate-800/30 border border-slate-700/30 rounded-lg p-3 hover:bg-slate-800/50 transition-all';
             
-            const status = settings.mcpStatus?.[server.name] || 'disconnected';
+            // Handle status object or string
+            const statusInfo = settings.mcpStatus?.[server.name] || { status: 'disconnected' };
+            const status = typeof statusInfo === 'string' ? statusInfo : statusInfo.status || 'disconnected';
+            const lastError = typeof statusInfo === 'object' ? statusInfo.lastError : null;
+            const toolCount = typeof statusInfo === 'object' ? statusInfo.tools : 0;
+            
             const statusColor = {
                 'connected': 'text-green-400',
                 'connecting': 'text-yellow-400',
@@ -1740,6 +1751,7 @@
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-slate-200">${server.name}</span>
                         <span class="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300">${server.command}</span>
+                        ${toolCount > 0 ? `<span class="text-xs px-2 py-0.5 rounded-full bg-green-600/20 text-green-400">${toolCount} tools</span>` : ''}
                     </div>
                     <div class="flex items-center gap-1">
                         <span>${statusDot}</span>
@@ -1747,9 +1759,10 @@
                     </div>
                 </div>
                 <div class="text-xs text-slate-400 font-mono">
-                    ${Array.isArray(server.args) ? server.args.join(' ') : (server.args || 'No arguments')}
+                    ${Array.isArray(server.args) ? server.args.join(' ') : (typeof server.args === 'string' ? server.args : (server.args ? JSON.stringify(server.args) : 'No arguments'))}
                 </div>
                 ${server.description ? `<div class="text-xs text-slate-500 mt-1 italic">${server.description}</div>` : ''}
+                ${lastError ? `<div class="text-xs text-red-400 mt-1 font-mono">Error: ${lastError}</div>` : ''}
             `;
             
             container.appendChild(div);

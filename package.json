@@ -57,6 +57,12 @@
         "title": "Review Code",
         "category": "Cuovare",
         "icon": "$(search-view-icon)"
+      },
+      {
+        "command": "cuovare.debugMCP",
+        "title": "Debug MCP Servers",
+        "category": "Cuovare",
+        "icon": "$(debug)"
       }
     ],
     "viewsContainers": {
