@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { AIProviderManager, Message, ToolCall, ChatResponse, ChatRequest } from './AIProviderManager';
 import { FileContextManager } from '../context/FileContextManager';
 import { ContextRetrievalEngine, RetrievalContext } from '../context/ContextRetrievalEngine';
@@ -973,7 +974,56 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     private async addMCPServer(server: any): Promise<void> {
-        // Implementation
+        const config = vscode.workspace.getConfiguration('cuovare');
+        const mcpServers = config.get<any[]>('mcpServers', []);
+        
+        // Process the arguments - replace workspace placeholders
+        let processedArgs = server.args;
+        if (Array.isArray(processedArgs)) {
+            processedArgs = processedArgs.map((arg: string) => 
+                this.replaceWorkspacePlaceholders(arg)
+            );
+        } else if (typeof processedArgs === 'string') {
+            processedArgs = processedArgs.split(',')
+                .map((arg: string) => this.replaceWorkspacePlaceholders(arg.trim()))
+                .filter((arg: string) => arg);
+        }
+        
+        const newServer = {
+            name: server.name,
+            command: server.command,
+            args: processedArgs,
+            autoReconnect: true
+        };
+        
+        // Check if server with same name already exists
+        const existingIndex = mcpServers.findIndex(s => s.name === server.name);
+        if (existingIndex >= 0) {
+            mcpServers[existingIndex] = newServer;
+        } else {
+            mcpServers.push(newServer);
+        }
+        
+        await config.update('mcpServers', mcpServers, vscode.ConfigurationTarget.Global);
+        
+        // Refresh MCP manager to pick up new server
+        await this._mcpManager.refreshConfiguration();
+        await this.sendSettings();
+    }
+
+    private replaceWorkspacePlaceholders(arg: string): string {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            return arg;
+        }
+        
+        // Replace common placeholders
+        let result = arg;
+        result = result.replace(/\$\{WORKSPACE_FOLDER\}/g, workspaceFolders[0].uri.fsPath);
+        result = result.replace(/\$\{workspaceFolder\}/g, workspaceFolders[0].uri.fsPath);
+        result = result.replace(/\$\{HOME\}/g, os.homedir());
+        
+        return result;
     }
 
     private async callMCPTool(tool: string, args: any): Promise<void> {
@@ -1538,6 +1588,15 @@ Return only the commit message, nothing else.`;
                 <!-- Content -->
                 <div class="p-4 space-y-3">
                     <div class="space-y-1">
+                        <label for="serverTemplate" class="block text-xs font-medium text-slate-300">Template</label>
+                        <select id="serverTemplate"
+                            class="w-full bg-slate-800/80 border border-slate-700/50 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all">
+                            <option value="">Custom Server</option>
+                        </select>
+                        <p class="text-xs text-slate-500">Choose a template or configure manually</p>
+                    </div>
+
+                    <div class="space-y-1">
                         <label for="serverName" class="block text-xs font-medium text-slate-300">Server Name</label>
                         <input id="serverName"
                             class="w-full bg-slate-800/80 border border-slate-700/50 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
@@ -1557,6 +1616,13 @@ Return only the commit message, nothing else.`;
                             class="w-full bg-slate-800/80 border border-slate-700/50 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all font-mono"
                             placeholder="e.g., @modelcontextprotocol/server-postgres" />
                         <p class="text-xs text-slate-500">Separate multiple arguments with commas</p>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="serverDescription" class="block text-xs font-medium text-slate-300">Description</label>
+                        <input id="serverDescription"
+                            class="w-full bg-slate-800/80 border border-slate-700/50 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
+                            placeholder="e.g., Access local files and directories" />
                     </div>
                 </div>
 

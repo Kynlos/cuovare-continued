@@ -539,6 +539,85 @@
 
     function showMCPServerModal() {
         mcpServerModal.classList.remove('hidden');
+        populateMCPServerTemplates();
+    }
+
+    function populateMCPServerTemplates() {
+        const templateSelect = document.getElementById('serverTemplate');
+        if (!templateSelect) return;
+
+        templateSelect.innerHTML = `
+            <option value="">Custom Server</option>
+            <option value="filesystem">Filesystem Server</option>
+            <option value="memory">Memory Server</option>
+            <option value="fetch">Fetch Server</option>
+            <option value="postgres">PostgreSQL Server</option>
+            <option value="sqlite">SQLite Server</option>
+            <option value="github">GitHub Server</option>
+            <option value="gitlab">GitLab Server</option>
+        `;
+        
+        templateSelect.addEventListener('change', (e) => {
+            const template = e.target.value;
+            if (template) {
+                fillMCPServerTemplate(template);
+            }
+        });
+    }
+
+    function fillMCPServerTemplate(template) {
+        const templates = {
+            filesystem: {
+                name: 'Filesystem Server',
+                command: 'npx',
+                args: '-y,@modelcontextprotocol/server-filesystem,${WORKSPACE_FOLDER}',
+                description: 'Access local files and directories'
+            },
+            memory: {
+                name: 'Memory Server',
+                command: 'npx',
+                args: '-y,@modelcontextprotocol/server-memory',
+                description: 'Persistent knowledge graph memory'
+            },
+            fetch: {
+                name: 'Fetch Server',
+                command: 'npx',
+                args: '-y,@modelcontextprotocol/server-fetch',
+                description: 'Fetch web content and APIs'
+            },
+            postgres: {
+                name: 'PostgreSQL Server',
+                command: 'npx',
+                args: '-y,@modelcontextprotocol/server-postgres,postgresql://user:password@localhost/database',
+                description: 'Connect to PostgreSQL database'
+            },
+            sqlite: {
+                name: 'SQLite Server',
+                command: 'npx',
+                args: '-y,@modelcontextprotocol/server-sqlite,path/to/database.db',
+                description: 'Connect to SQLite database'
+            },
+            github: {
+                name: 'GitHub Server',
+                command: 'npx',
+                args: '-y,@modelcontextprotocol/server-github',
+                description: 'GitHub repository management'
+            },
+            gitlab: {
+                name: 'GitLab Server',
+                command: 'npx',
+                args: '-y,@modelcontextprotocol/server-gitlab',
+                description: 'GitLab project management'
+            }
+        };
+
+        const config = templates[template];
+        if (config) {
+            document.getElementById('serverName').value = config.name;
+            document.getElementById('serverCommand').value = config.command;
+            document.getElementById('serverArgs').value = config.args;
+            document.getElementById('serverDescription').value = config.description;
+        }
     }
 
     function hideMCPServerModal() {
@@ -547,9 +626,11 @@
     }
 
     function clearMCPServerForm() {
+        document.getElementById('serverTemplate').value = '';
         document.getElementById('serverName').value = '';
         document.getElementById('serverCommand').value = '';
         document.getElementById('serverArgs').value = '';
+        document.getElementById('serverDescription').value = '';
     }
 
     function saveMCPServer() {
@@ -1625,21 +1706,50 @@
         const container = document.getElementById('mcpServersContainer');
         container.innerHTML = '';
 
+        if (!settings.mcpServers || settings.mcpServers.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="text-slate-400 text-sm mb-2">No MCP servers configured</div>
+                    <div class="text-xs text-slate-500">Click "Add" to configure your first server</div>
+                </div>
+            `;
+            return;
+        }
+
         settings.mcpServers?.forEach(server => {
             const div = document.createElement('div');
-            div.className = 'mcp-server';
+            div.className = 'mcp-server bg-slate-800/30 border border-slate-700/30 rounded-lg p-3 hover:bg-slate-800/50 transition-all';
             
             const status = settings.mcpStatus?.[server.name] || 'disconnected';
+            const statusColor = {
+                'connected': 'text-green-400',
+                'connecting': 'text-yellow-400',
+                'disconnected': 'text-red-400',
+                'error': 'text-red-500'
+            }[status] || 'text-slate-400';
+            
+            const statusDot = {
+                'connected': '🟢',
+                'connecting': '🟡', 
+                'disconnected': '🔴',
+                'error': '🔴'
+            }[status] || '⚪';
             
             div.innerHTML = `
-                <div class="mcp-server-header">
-                    <span class="mcp-server-name">${server.name}</span>
-                    <span class="mcp-server-status ${status}">${status}</span>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-slate-200">${server.name}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300">${server.command}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span>${statusDot}</span>
+                        <span class="text-xs ${statusColor} capitalize">${status}</span>
+                    </div>
                 </div>
-                <div style="font-size: 12px; opacity: 0.8;">
-                    Command: ${server.command}<br>
-                    Args: ${Array.isArray(server.args) ? server.args.join(', ') : (server.args || 'none')}
+                <div class="text-xs text-slate-400 font-mono">
+                    ${Array.isArray(server.args) ? server.args.join(' ') : (server.args || 'No arguments')}
                 </div>
+                ${server.description ? `<div class="text-xs text-slate-500 mt-1 italic">${server.description}</div>` : ''}
             `;
             
             container.appendChild(div);

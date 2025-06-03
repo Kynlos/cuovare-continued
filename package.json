@@ -200,14 +200,7 @@
             },
             "required": ["name", "command"]
           },
-          "default": [
-            {
-              "name": "Example Filesystem Server",
-              "command": "npx",
-              "args": ["@modelcontextprotocol/server-filesystem", "/path/to/allowed/directory"],
-              "autoReconnect": true
-            }
-          ]
+          "default": []
         },
         "cuovare.toolsEnabled": {
           "type": "boolean",

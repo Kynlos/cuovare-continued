@@ -46,6 +46,14 @@
 - **Chat History** - Persistent sessions across VS Code restarts
 - **Real-time Server Monitoring** - Health status and auto-reconnection for MCP servers
 
+### 🤖 Coming Soon: Full Agent Mode
+- **Autonomous Coding Assistant** - Toggle on/off in chat window for complete workspace control
+- **Multi-step Task Execution** - AI can plan and execute complex development workflows
+- **File System Management** - Create, modify, and organize files across your entire project
+- **Automated Testing & Validation** - Generate and run tests to verify code changes
+- **Intelligent Code Review** - Analyze code quality, security, and performance automatically
+- **Project-wide Refactoring** - Make coordinated changes across multiple files safely
+
 ### 🛡️ Security & Privacy
 - **Secure API Key Storage** - Uses VS Code's encrypted storage
 - **API Key Management** - Easy add/remove functionality for each provider
@@ -366,17 +374,61 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] Real-time message updates
 - [ ] Streaming responses
 
-### v0.4.0 - Advanced Features
-- [ ] Voice input/output
-- [ ] Custom model fine-tuning
-- [ ] Advanced context filtering
-- [ ] Plugin system
+### v0.4.0 - Core Enhancements
+- [ ] **Streaming Responses** - Real-time token streaming for better UX
+- [ ] **Full Agent Mode** - Complete autonomous coding assistant with workspace control
+- [ ] **Multi-file Editing** - Edit multiple files simultaneously with AI coordination
+- [ ] **Advanced Code Review** - AI-powered code analysis with suggestions
+- [ ] **Auto-testing Generation** - Generate unit tests for selected code
+- [ ] **Code Refactoring Assistant** - Intelligent code restructuring suggestions
+
+### v0.5.0 - Intelligent Code Analysis
+- [ ] **Real-time Error Detection** - Live code analysis with fix suggestions
+- [ ] **Performance Optimization Scanner** - Identify and fix performance bottlenecks
+- [ ] **Security Vulnerability Detection** - Scan code for security issues
+- [ ] **Code Quality Metrics** - Complexity analysis and maintainability scores
+- [ ] **Smart Import Management** - Auto-organize and optimize imports
+- [ ] **Documentation Generator** - Auto-generate docs from code comments and structure
+
+### v0.6.0 - Workspace Intelligence
+- [ ] **Workspace-wide Search & Replace** - AI-powered find and replace across projects
+- [ ] **Code Navigation Assistant** - Smart go-to-definition and reference finding
+- [ ] **Project Scaffolding** - Generate new projects with best practices
+- [ ] **Database Schema Understanding** - Visual database exploration and queries
+- [ ] **API Documentation Integration** - Live API docs and endpoint testing
+- [ ] **Terminal Command Execution** - AI can run and manage terminal commands
+
+### v0.7.0 - Advanced Features
+- [ ] **Voice Input/Output** - Talk to your AI coding assistant
+- [ ] **Custom Model Fine-tuning** - Train models on your specific codebase
+- [ ] **Advanced Context Filtering** - Smart context selection and prioritization
+- [ ] **Code Snippets Library** - AI-curated reusable code templates
+- [ ] **File Tree Manipulation** - Create, move, and organize files with AI
+- [ ] **Collaborative Coding** - Real-time pair programming with AI
+
+### v0.8.0 - Enterprise & Integration
+- [ ] **CI/CD Pipeline Integration** - Connect with GitHub Actions, Jenkins, etc.
+- [ ] **Plugin System** - Extensible architecture for custom tools
+- [ ] **Enterprise SSO Support** - SAML, OAuth, and corporate authentication
+- [ ] **Audit Logging** - Comprehensive activity tracking for compliance
+- [ ] **Team Workspace Management** - Shared configurations and knowledge bases
+- [ ] **Custom Model Hosting** - Self-hosted AI models for enterprise
+
+### v0.9.0 - Professional Features
+- [ ] **Advanced Formatting Engine** - Context-aware code formatting
+- [ ] **Intelligent Auto-completion** - AI-powered code suggestions
+- [ ] **Code Style Enforcement** - Automated style guide compliance
+- [ ] **Performance Profiling** - Real-time performance analysis
+- [ ] **Dependency Management** - Smart package updates and vulnerability checks
+- [ ] **Cross-language Support** - Enhanced support for 20+ programming languages
 
 ### v1.0.0 - Production Ready
-- [ ] Performance optimizations
-- [ ] Collaborative features
-- [ ] Enterprise security
-- [ ] Marketplace release
+- [ ] **Performance Optimizations** - Sub-second response times
+- [ ] **Enterprise Security** - SOC2, GDPR compliance
+- [ ] **Marketplace Release** - Official VS Code Marketplace publication
+- [ ] **Professional Support** - Dedicated support channels
+- [ ] **Advanced Analytics** - Usage insights and productivity metrics
+- [ ] **Mobile Companion App** - Code review and monitoring on mobile
 
 ## 🤝 Contributing
 
