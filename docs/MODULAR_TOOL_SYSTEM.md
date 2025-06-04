@@ -18,7 +18,8 @@ src/agent/
     ├── PerformanceTool.ts    # ⚡ Performance optimization
     ├── DeploymentTool.ts     # 🚀 Infrastructure & deployment
     ├── PackageManagerTool.ts # 📦 Dependency management
-    ├── FileOperationTool.ts  # 📁 File operations
+    ├── WebScrapingTool.ts    # 🌍 Web content extraction
+    ├── FileOperationTool.ts  # 📁 Enhanced file operations
     ├── TerminalTool.ts       # 💻 Terminal commands
     ├── SearchTool.ts         # 🔍 Code search
     └── GitTool.ts            # 🔄 Git operations
@@ -235,6 +236,63 @@ await packageTool.execute('findUnused', {
 });
 ```
 
+### 🌍 WebScrapingTool
+**Intelligent web content extraction with domain security**
+
+#### Key Methods
+- `scrapeUrl` - Scrape content from allowed documentation domains
+- `extractUrls` - Extract URLs from user text with domain filtering
+- `scrapeMultiple` - Scrape multiple URLs with content aggregation
+
+#### Example Usage
+```typescript
+// Scrape documentation content
+await webScrapingTool.execute('scrapeUrl', {
+  url: 'https://docs.microsoft.com/api-guide',
+  maxLength: 5000,
+  includeCodeExamples: true
+});
+
+// Extract and scrape URLs from user prompt
+await webScrapingTool.execute('extractUrls', {
+  text: 'Check out https://react.dev/learn and https://nodejs.org/docs'
+});
+```
+
+### 📁 Enhanced FileOperationTool
+**Advanced file operations with intelligent editing**
+
+#### Key Methods
+- `read` - Read file contents
+- `write` / `create` - Write or create new files
+- `edit` - Advanced editing with find/replace, line insertion, positioning
+- `copy` / `move` - File management operations
+- `delete` - Safe file deletion
+
+#### Example Usage
+```typescript
+// Advanced find/replace editing
+await fileOperationTool.execute('edit', {
+  filePath: 'src/app.ts',
+  searchText: 'console.log',
+  replaceText: 'logger.info'
+});
+
+// Insert content at specific line
+await fileOperationTool.execute('edit', {
+  filePath: 'src/utils.ts',
+  content: 'import { Logger } from "./logger";',
+  lineNumber: 1
+});
+
+// Append content to end of file
+await fileOperationTool.execute('edit', {
+  filePath: 'README.md',
+  content: '\n## New Section\nAdditional documentation...',
+  insertAt: 'end'
+});
+```
+
 ## 🔧 Tool Discovery System
 
 ### Automatic Discovery
@@ -400,12 +458,13 @@ try {
 ## 📊 Tool Statistics
 
 ### Current Implementation
-- **11 Tools** - Complete development workflow coverage
-- **8,853+ Lines** - Enterprise-grade implementation
-- **120+ Methods** - Comprehensive functionality
+- **13 Tools** - Complete development workflow coverage with internet access
+- **10,000+ Lines** - Enterprise-grade implementation
+- **130+ Methods** - Comprehensive functionality including web research
 - **Auto-Discovery** - Zero-configuration tool loading
 - **Type Safety** - Full TypeScript implementation
 - **Error Handling** - Robust error recovery and reporting
+- **Domain Security** - Whitelisted web scraping for safe internet access
 
 ### Tool Method Breakdown
 | Tool | Methods | Lines of Code | Primary Focus |
@@ -417,6 +476,8 @@ try {
 | PerformanceTool | 12 | ~1,400 | Performance optimization |
 | DeploymentTool | 12 | ~1,800 | DevOps & infrastructure |
 | PackageManagerTool | 12 | ~1,200 | Dependency management |
+| WebScrapingTool | 3 | ~400 | Web content extraction |
+| Enhanced FileOperationTool | 7 | ~500 | Advanced file operations |
 
 ## 🚀 Future Enhancements
 
@@ -442,11 +503,18 @@ try {
 - **Command Whitelisting** - Terminal commands are validated before execution
 - **File Access Control** - Restricted to workspace and temporary directories
 - **Input Validation** - All tool inputs are validated and sanitized
+- **Domain Whitelisting** - Web scraping restricted to approved documentation sites
 
 ### Secret Management
 - **No Secret Logging** - Sensitive data is never logged or stored
 - **Environment Variables** - Secrets accessed through environment variables
 - **Secure Storage** - Uses VS Code's encrypted storage for API keys
+
+### Web Security
+- **Domain Restriction** - Only 50+ approved documentation domains allowed
+- **Content Filtering** - HTML/CSS/JS stripped while preserving code examples
+- **Size Limits** - 5000 character limit prevents memory exhaustion
+- **Timeout Protection** - 10-second request timeout prevents hanging
 
 ## 📖 Documentation Links
 
