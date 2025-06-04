@@ -465,7 +465,6 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] Fixed @ file references with autocomplete
 - [x] Context scope control
 - [x] Real-time message updates
-- [ ] Streaming responses
 
 ### v0.4.0 - Revolutionary Agent System ✅
 - [x] **Full Agent Mode** - Complete autonomous coding assistant with workspace control
@@ -484,8 +483,7 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] **PackageManagerTool** - Dependency analysis, license auditing, migration scripts
 - [x] **WebScrapingTool** - Intelligent web content extraction with domain whitelisting and code preservation
 - [x] **Enhanced FileOperationTool** - Advanced editing with find/replace, line insertion, content manipulation
-- [ ] **Streaming Responses** - Real-time token streaming for better UX
-- [ ] **Multi-file Editing** - Edit multiple files simultaneously with AI coordination
+- [x] **Multi-file Editing** - Edit multiple files simultaneously with AI coordination
 
 ### v0.5.0 - Enhanced Agent Capabilities
 - [ ] **Advanced Code Review** - AI-powered code analysis with suggestions
