@@ -7,6 +7,7 @@ import { FileContextManager } from '../context/FileContextManager';
 import { ContextRetrievalEngine, RetrievalContext } from '../context/ContextRetrievalEngine';
 import { MCPManager } from '../mcp/MCPManager';
 import { ToolExecutionEngine, ToolExecutionRequest, ToolExecutionResult } from '../mcp/ToolExecutionEngine';
+import { AgentMode } from '../agent/AgentMode';
 import { marked } from 'marked';
 
 export interface ChatMessage {
@@ -24,6 +25,9 @@ export interface ChatMessage {
         toolCalls?: ToolCall[];
         toolResults?: ToolExecutionResult[];
         executionTime?: number;
+        isAgentMode?: boolean;
+        agentStatus?: string;
+        isSystemMessage?: boolean;
     };
 }
 
@@ -44,6 +48,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private _sessions: Map<string, ChatSession> = new Map();
     private _toolsEnabled = true;
     private _autoExecuteTools = true;
+    private _agentMode: AgentMode;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -56,6 +61,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         this.loadSessions();
         this.createNewSession();
         this.setupToolEventHandlers();
+        
+        // Initialize Agent Mode
+        this._agentMode = new AgentMode(
+            this._aiManager,
+            this._contextEngine,
+            this._mcpManager,
+            this._toolEngine
+        );
     }
 
     public resolveWebviewView(
@@ -97,6 +110,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'callMCPTool':
                     await this.callMCPTool(data.tool, data.args);
+                    break;
+                case 'toggleAgentMode':
+                    this.toggleAgentMode(data.enabled);
+                    break;
+                case 'stopAgentExecution':
+                    this.stopAgentExecution();
                     break;
                 case 'toggleTools':
                     this.toggleToolsEnabled(data.enabled);
@@ -195,6 +214,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             
             // Prepare conversation context
             const contextFiles = await this.getContextFiles(fileReferences);
+            
+            // Check if agent mode is enabled
+            if (this._agentMode.getEnabled()) {
+                await this.handleAgentModeMessage(message, contextFiles, userMessage);
+                return;
+            }
             
             // Get intelligent context based on the user's message
             const intelligentContext = await this.getIntelligentContext(message, fileReferences);
@@ -853,7 +878,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 mcpStatus: Object.fromEntries(mcpStatus),
                 mcpTools,
                 toolsEnabled: this._toolsEnabled,
-                autoExecuteTools: this._autoExecuteTools
+                autoExecuteTools: this._autoExecuteTools,
+                agentModeEnabled: this._agentMode.getEnabled(),
+                agentCapabilities: this._agentMode.getCapabilities(),
+                currentAgentPlan: this._agentMode.getCurrentPlan()
             }
         });
     }
@@ -897,6 +925,107 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         this._chatHistory = [];
         this.updateCurrentSession();
         this.sendChatHistory();
+    }
+
+    /**
+     * Handle message in agent mode
+     */
+    private async handleAgentModeMessage(message: string, contextFiles: any[], userMessage: ChatMessage): Promise<void> {
+        try {
+            // Show agent mode indicator
+            const agentMessage: ChatMessage = {
+                id: this.generateId(),
+                role: 'assistant',
+                content: '🤖 **Agent Mode Activated**\n\nAnalyzing your request and creating execution plan...',
+                timestamp: Date.now(),
+                metadata: {
+                    isAgentMode: true,
+                    agentStatus: 'planning'
+                }
+            };
+            
+            this._chatHistory.push(agentMessage);
+            this.sendChatHistory();
+            
+            // Execute in agent mode
+            const result = await this._agentMode.executeAgentRequest(message, contextFiles);
+            
+            // Update with final result
+            agentMessage.content = result;
+            agentMessage.metadata = {
+                isAgentMode: true,
+                agentStatus: 'completed'
+            };
+            
+            this.updateMessage(agentMessage);
+            this.updateCurrentSession();
+            
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            
+            const agentErrorMessage: ChatMessage = {
+                id: this.generateId(),
+                role: 'assistant',
+                content: `🤖 **Agent Mode Error**\n\n❌ ${errorMessage}`,
+                timestamp: Date.now(),
+                metadata: {
+                    isAgentMode: true,
+                    agentStatus: 'failed'
+                }
+            };
+            
+            this._chatHistory.push(agentErrorMessage);
+            this.sendChatHistory();
+            this.updateCurrentSession();
+        }
+    }
+
+    /**
+     * Toggle agent mode
+     */
+    private toggleAgentMode(enabled: boolean): void {
+        this._agentMode.setEnabled(enabled);
+        
+        // Send updated settings to UI
+        this.sendSettings();
+        
+        // Add system message about mode change
+        const systemMessage: ChatMessage = {
+            id: this.generateId(),
+            role: 'assistant',
+            content: `🤖 **Agent Mode ${enabled ? 'Enabled' : 'Disabled'}**\n\n${enabled ? 
+                'I can now perform autonomous multi-step tasks including file operations, terminal commands, and complex workflows.' : 
+                'Switched back to standard chat mode.'}`,
+            timestamp: Date.now(),
+            metadata: {
+                isSystemMessage: true
+            }
+        };
+        
+        this._chatHistory.push(systemMessage);
+        this.sendChatHistory();
+        this.updateCurrentSession();
+    }
+
+    /**
+     * Stop agent execution
+     */
+    private stopAgentExecution(): void {
+        this._agentMode.stopExecution();
+        
+        const systemMessage: ChatMessage = {
+            id: this.generateId(),
+            role: 'assistant',
+            content: '🛑 **Agent Execution Stopped**\n\nExecution has been halted by user request.',
+            timestamp: Date.now(),
+            metadata: {
+                isSystemMessage: true
+            }
+        };
+        
+        this._chatHistory.push(systemMessage);
+        this.sendChatHistory();
+        this.updateCurrentSession();
     }
 
     private async saveApiKey(provider: string, apiKey: string): Promise<void> {
@@ -1338,11 +1467,18 @@ Return only the commit message, nothing else.`;
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                 </button>
+                <button id="agentModeToggle"
+                    class="flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-200"
+                    title="Toggle Agent Mode">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </button>
                 <button id="generateCommitBtn"
                     class="flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200"
                     title="Generate Commit Message">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 713.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                     </svg>
                 </button>
                 <button id="settingsBtn"
@@ -1648,6 +1784,10 @@ Return only the commit message, nothing else.`;
     <script src="${scriptUri}"></script>
 </body>
 </html>`;
+    }
+
+    public dispose(): void {
+        this._agentMode.dispose();
     }
 }
 

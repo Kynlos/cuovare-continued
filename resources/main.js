@@ -25,6 +25,7 @@
     const settingsBtn = document.getElementById('settingsBtn');
     const historyBtn = document.getElementById('historyBtn');
     const newChatBtn = document.getElementById('newChatBtn');
+    const agentModeToggle = document.getElementById('agentModeToggle');
     const generateCommitBtn = document.getElementById('generateCommitBtn');
     const clearBtn = document.getElementById('clearBtn');
     const closeSettings = document.getElementById('closeSettings');
@@ -55,6 +56,7 @@
         settingsBtn.addEventListener('click', showSettings);
         historyBtn.addEventListener('click', showHistory);
         newChatBtn.addEventListener('click', createNewChat);
+        agentModeToggle.addEventListener('click', toggleAgentMode);
         generateCommitBtn.addEventListener('click', generateCommitMessage);
         if (clearBtn) clearBtn.addEventListener('click', clearChat);
         closeSettings.addEventListener('click', hideSettings);
@@ -511,6 +513,14 @@
 
     function createNewChat() {
         vscode.postMessage({ type: 'newChat' });
+    }
+
+    function toggleAgentMode() {
+        const isEnabled = settings.agentModeEnabled || false;
+        vscode.postMessage({ 
+            type: 'toggleAgentMode', 
+            enabled: !isEnabled 
+        });
     }
 
     function generateCommitMessage() {
@@ -1165,8 +1175,26 @@
     function renderSettings() {
         renderAPIKeys();
         renderProviderSelect();
+        updateAgentModeDisplay();
         renderMCPServers();
         renderMCPTools();
+    }
+
+    function updateAgentModeDisplay() {
+        const agentButton = document.getElementById('agentModeToggle');
+        if (!agentButton) return;
+        
+        const isEnabled = settings.agentModeEnabled || false;
+        
+        if (isEnabled) {
+            agentButton.classList.remove('text-slate-400', 'hover:text-purple-400');
+            agentButton.classList.add('text-purple-400', 'bg-purple-500/20');
+            agentButton.title = 'Agent Mode: ON - Click to disable';
+        } else {
+            agentButton.classList.remove('text-purple-400', 'bg-purple-500/20');
+            agentButton.classList.add('text-slate-400', 'hover:text-purple-400');
+            agentButton.title = 'Agent Mode: OFF - Click to enable';
+        }
     }
 
     function renderAPIKeys() {

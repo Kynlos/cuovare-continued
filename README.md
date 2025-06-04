@@ -46,13 +46,19 @@
 - **Chat History** - Persistent sessions across VS Code restarts
 - **Real-time Server Monitoring** - Health status and auto-reconnection for MCP servers
 
-### 🤖 Coming Soon: Full Agent Mode
-- **Autonomous Coding Assistant** - Toggle on/off in chat window for complete workspace control
-- **Multi-step Task Execution** - AI can plan and execute complex development workflows
-- **File System Management** - Create, modify, and organize files across your entire project
-- **Automated Testing & Validation** - Generate and run tests to verify code changes
-- **Intelligent Code Review** - Analyze code quality, security, and performance automatically
-- **Project-wide Refactoring** - Make coordinated changes across multiple files safely
+### 🤖 Full Agent Mode ⭐ **NEW!**
+- **Revolutionary Modular Tool System** - Dynamic tool discovery and LLM integration
+- **True Autonomous Agent** - Actually executes tasks instead of just analyzing
+- **Plug-and-Play Architecture** - Add new capabilities by simply creating tool files
+- **Multi-Step Planning** - AI breaks down complex tasks into concrete, executable actions
+- **File Operations** - Read, write, edit, create, and delete files autonomously
+- **Terminal Commands** - Execute shell commands and build scripts safely
+- **Code Search & Analysis** - Intelligent semantic search across your codebase
+- **Git Automation** - Automated branching, commits, and repository management
+- **Real-time Execution** - Progress tracking with error recovery and user oversight
+- **Intelligent Task Understanding** - Understands user intent and creates deliverables
+- **Safe Operations** - Built-in safeguards with workspace boundaries and command whitelisting
+- **Extensible Design** - Easy to add new tools without modifying core agent logic
 
 ### 🛡️ Security & Privacy
 - **Secure API Key Storage** - Uses VS Code's encrypted storage
@@ -82,6 +88,7 @@
 2. **Configure API Keys** - Click the settings gear and add your AI provider API keys
 3. **Select Your Model** - Choose your preferred AI provider and model
 4. **Start Chatting** - Ask questions about your code!
+5. **Enable Agent Mode** - Click the purple robot icon (🤖) for autonomous coding assistance
 
 ### API Key Setup
 
@@ -154,6 +161,27 @@ Show me how the database layer connects to the API endpoints
 [Use the git commit button in chat header for AI-generated commit messages]
 ```
 
+### 🤖 Agent Mode Examples
+```
+# Documentation Creation
+"Document the authentication system" → Reads auth files, creates comprehensive docs
+
+# Feature Development  
+"Create a new React component with TypeScript and tests" → Writes actual code files
+
+# Bug Investigation & Fixes
+"Fix the memory leak in data processing" → Identifies issue, implements solution
+
+# Project Setup
+"Set up a new microservice with Express and Docker" → Creates full project structure
+
+# Code Refactoring
+"Refactor authentication to use JWT tokens" → Modifies existing codebase safely
+
+# Automated Analysis
+"Review code quality and suggest improvements" → Analyzes and creates improvement plan
+```
+
 ## 🏗️ Project Structure
 
 ```
@@ -163,10 +191,18 @@ cuovare/
 │   ├── providers/
 │   │   ├── AIProviderManager.ts  # Multi-provider AI integration
 │   │   └── ChatViewProvider.ts   # Webview UI and chat logic
+│   ├── agent/
+│   │   ├── AgentMode.ts          # Full Agent Mode orchestration
+│   │   ├── ToolRegistry.ts       # Dynamic tool discovery and management
+│   │   └── executors/            # Modular tool implementations
+│   │       ├── FileOperationTool.ts  # File operations (read, write, create, delete)
+│   │       ├── TerminalTool.ts       # Safe terminal command execution
+│   │       ├── SearchTool.ts         # Code search and analysis
+│   │       └── GitTool.ts            # Git operations and automation
 │   ├── context/
-│   │   ├── ContextRetrievalEngine.ts  # Advanced context retrieval
-│   │   ├── ContextIntegration.ts      # Integration layer
-│   │   └── FileContextManager.ts      # Basic file context
+│   │   ├── ContextRetrievalEngine.ts  # Advanced semantic search engine
+│   │   ├── ContextIntegration.ts      # Integration layer for chat
+│   │   └── FileContextManager.ts      # Basic file context management
 │   └── mcp/
 │       └── MCPManager.ts         # Model Context Protocol integration
 ├── resources/
@@ -174,14 +210,16 @@ cuovare/
 │   ├── main.js                   # Frontend JavaScript logic
 │   └── icon.png                  # Extension icon
 ├── test/
-│   ├── unit/                     # Unit tests
-│   ├── context/                  # Integration tests
-│   └── runUnitTests.js          # Test runner
+│   ├── unit/                     # Unit tests (fast, isolated)
+│   ├── context/                  # Integration tests (VS Code environment)
+│   └── runUnitTests.js          # Custom test runner
 ├── docs/
-│   ├── DEVELOPMENT.md           # Development guide
-│   ├── TESTING.md              # Testing guide
+│   ├── AGENT_MODE.md            # Complete Agent Mode documentation
+│   ├── MODULAR_TOOL_SYSTEM.md  # Tool system architecture guide
+│   ├── DEVELOPMENT.md           # Development setup and workflow
+│   ├── TESTING.md              # Testing strategy and guides
 │   └── CONTRIBUTING.md         # Contributor guidelines
-└── package.json                # Extension manifest
+└── package.json                # Extension manifest and dependencies
 ```
 
 ## 🛠️ Development
@@ -319,6 +357,14 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 
 ## 🆕 Recent Updates
 
+### v0.4.0 - Agent System ⭐ **LATEST!**
+- **🚀 Modular Tool System**: Dynamic tool discovery and LLM integration for infinite extensibility
+- **🤖 True Agent Behavior**: Agent now executes tasks instead of just providing information
+- **🔧 Plug-and-Play Tools**: Add new capabilities by creating files in `/executors` directory
+- **⚡ Enhanced Planning**: Improved AI planning that focuses on concrete deliverables
+- **🛡️ Smart Safety**: Workspace boundaries, command whitelisting, and user oversight
+- **📈 Better Task Understanding**: Agent properly interprets user intent and creates actual results
+
 ### v0.3.0 - Enhanced Context & Git Integration
 - **✅ AI-Powered Git Commits**: Generate conventional commit messages with AI analysis
 - **✅ Intelligent Context Engine**: Advanced semantic search that understands code concepts
@@ -374,29 +420,33 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] Real-time message updates
 - [ ] Streaming responses
 
-### v0.4.0 - Core Enhancements
+### v0.4.0 - Revolutionary Agent System ✅
+- [x] **Full Agent Mode** - Complete autonomous coding assistant with workspace control
+- [x] **Modular Tool System** - Dynamic tool discovery and infinite extensibility  
+- [x] **True Agent Behavior** - Executes tasks instead of just providing information
+- [x] **Plug-and-Play Architecture** - Add capabilities by creating tool files
+- [x] **Smart Safety Controls** - Workspace boundaries and command whitelisting
+- [x] **Multi-Step Planning** - AI breaks down complex tasks into executable actions
 - [ ] **Streaming Responses** - Real-time token streaming for better UX
-- [ ] **Full Agent Mode** - Complete autonomous coding assistant with workspace control
 - [ ] **Multi-file Editing** - Edit multiple files simultaneously with AI coordination
+
+### v0.5.0 - Enhanced Agent Capabilities
 - [ ] **Advanced Code Review** - AI-powered code analysis with suggestions
 - [ ] **Auto-testing Generation** - Generate unit tests for selected code
 - [ ] **Code Refactoring Assistant** - Intelligent code restructuring suggestions
-
-### v0.5.0 - Intelligent Code Analysis
 - [ ] **Real-time Error Detection** - Live code analysis with fix suggestions
 - [ ] **Performance Optimization Scanner** - Identify and fix performance bottlenecks
 - [ ] **Security Vulnerability Detection** - Scan code for security issues
 - [ ] **Code Quality Metrics** - Complexity analysis and maintainability scores
 - [ ] **Smart Import Management** - Auto-organize and optimize imports
-- [ ] **Documentation Generator** - Auto-generate docs from code comments and structure
 
 ### v0.6.0 - Workspace Intelligence
+- [ ] **Documentation Generator** - Auto-generate docs from code comments and structure
 - [ ] **Workspace-wide Search & Replace** - AI-powered find and replace across projects
 - [ ] **Code Navigation Assistant** - Smart go-to-definition and reference finding
 - [ ] **Project Scaffolding** - Generate new projects with best practices
 - [ ] **Database Schema Understanding** - Visual database exploration and queries
 - [ ] **API Documentation Integration** - Live API docs and endpoint testing
-- [ ] **Terminal Command Execution** - AI can run and manage terminal commands
 
 ### v0.7.0 - Advanced Features
 - [ ] **Voice Input/Output** - Talk to your AI coding assistant
@@ -408,7 +458,7 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 
 ### v0.8.0 - Enterprise & Integration
 - [ ] **CI/CD Pipeline Integration** - Connect with GitHub Actions, Jenkins, etc.
-- [ ] **Plugin System** - Extensible architecture for custom tools
+- [ ] **Advanced Plugin System** - Enhanced extensible architecture for custom tools
 - [ ] **Enterprise SSO Support** - SAML, OAuth, and corporate authentication
 - [ ] **Audit Logging** - Comprehensive activity tracking for compliance
 - [ ] **Team Workspace Management** - Shared configurations and knowledge bases
@@ -466,9 +516,11 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 ## 📞 Support
 
 - **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/your-org/cuovare/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/cuovare/discussions)
-- **Discord**: [Join our community](https://discord.gg/cuovare)
+  - **[🤖 Agent Mode Guide](docs/AGENT_MODE.md)** - Complete guide to autonomous AI development
+  - **[🔧 MCP Integration](docs/MCP_ENHANCED_GUIDE.md)** - External tool setup and configuration
+  - **[👩‍💻 Development Guide](docs/DEVELOPMENT.md)** - Contributing to Cuovare
+- **Issues**: [GitHub Issues](https://github.com/Kynlos/cuovare/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Kynlos/cuovare/discussions)
 
 ---
 

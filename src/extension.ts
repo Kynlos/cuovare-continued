@@ -5,6 +5,7 @@ import { FileContextManager } from './context/FileContextManager';
 import { ContextRetrievalEngine } from './context/ContextRetrievalEngine';
 import { MCPManager } from './mcp/MCPManager';
 import { ToolExecutionEngine } from './mcp/ToolExecutionEngine';
+import { AgentMode } from './agent/AgentMode';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Cuovare AI Assistant is activating...');
