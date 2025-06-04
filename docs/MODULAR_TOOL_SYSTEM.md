@@ -11,18 +11,30 @@ src/agent/
 ├── ToolRegistry.ts       # Central tool discovery and management
 ├── AgentMode.ts         # Tool orchestration and execution
 └── executors/           # Individual tool implementations
-    ├── DebuggingTool.ts      # 🐛 Debugging & profiling
-    ├── DatabaseTool.ts       # 🗄️ Database operations
-    ├── APITool.ts            # 🌐 API development
-    ├── SecurityTool.ts       # 🛡️ Security analysis
-    ├── PerformanceTool.ts    # ⚡ Performance optimization
-    ├── DeploymentTool.ts     # 🚀 Infrastructure & deployment
-    ├── PackageManagerTool.ts # 📦 Dependency management
-    ├── WebScrapingTool.ts    # 🌍 Web content extraction
-    ├── FileOperationTool.ts  # 📁 Enhanced file operations
-    ├── TerminalTool.ts       # 💻 Terminal commands
-    ├── SearchTool.ts         # 🔍 Code search
-    └── GitTool.ts            # 🔄 Git operations
+    ├── DebuggingTool.ts              # 🐛 Debugging & profiling
+    ├── DatabaseTool.ts               # 🗄️ Database operations
+    ├── APITool.ts                    # 🌐 API development
+    ├── SecurityTool.ts               # 🛡️ Security analysis
+    ├── PerformanceTool.ts            # ⚡ Performance optimization
+    ├── DeploymentTool.ts             # 🚀 Infrastructure & deployment
+    ├── PackageManagerTool.ts         # 📦 Dependency management
+    ├── WebScrapingTool.ts            # 🌍 Web content extraction
+    ├── FileOperationTool.ts          # 📁 Enhanced file operations
+    ├── MultiFileEditingTool.ts       # 🔄 Multi-file coordination
+    ├── TerminalTool.ts               # 💻 Terminal commands
+    ├── SearchTool.ts                 # 🔍 Code search
+    ├── GitTool.ts                    # 🔄 Git operations
+    ├── DocumentationTool.ts          # 📚 Documentation generation
+    ├── TestingTool.ts                # 🧪 Testing framework
+    ├── RefactoringTool.ts            # ⚙️ Code refactoring
+    ├── AdvancedCodeReviewTool.ts     # 🔍 AI-powered code review
+    ├── AutoTestGenerationTool.ts     # 🧪 Automated test generation
+    ├── CodeRefactoringTool.ts        # ⚙️ Intelligent refactoring
+    ├── RealTimeErrorDetectionTool.ts # ⚡ Live error detection
+    ├── PerformanceOptimizationTool.ts # 🚀 Performance optimization
+    ├── SecurityVulnerabilityTool.ts  # 🔒 Security vulnerability scanning
+    ├── CodeQualityMetricsTool.ts     # 📊 Quality metrics analysis
+    └── SmartImportManagementTool.ts  # 📦 Import optimization
 ```
 
 ### ToolExecutor Interface

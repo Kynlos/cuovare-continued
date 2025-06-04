@@ -60,16 +60,39 @@
 - **Safe Operations** - Built-in safeguards with workspace boundaries and command whitelisting
 - **Extensible Design** - Easy to add new tools without modifying core agent logic
 
-### 🛠️ Comprehensive Developer Toolkit
+### 🛠️ Comprehensive Developer Toolkit (23 Tools)
+**Core Development Tools:**
 - **🐛 DebuggingTool** - Breakpoints, error analysis, dead code detection, memory leak detection
 - **🗄️ DatabaseTool** - Schema generation, migrations, ORM models, query optimization, API generation
 - **🌐 APITool** - Endpoint testing, OpenAPI generation, client code generation, mock servers, load testing
+- **📝 Enhanced FileOperationTool** - Advanced file editing with find/replace, line insertion, and content manipulation
+- **🔄 MultiFileEditingTool** - Edit multiple files simultaneously with AI coordination and rollback support
+
+**Quality & Analysis Tools:**
+- **🔍 AdvancedCodeReviewTool** - AI-powered comprehensive code analysis with security, performance, and maintainability insights
+- **🧪 AutoTestGenerationTool** - Generate unit tests with Jest, Mocha, Vitest support and intelligent test creation
+- **⚙️ CodeRefactoringTool** - Intelligent code restructuring with automated pattern recognition and safe transformations
+- **⚡ RealTimeErrorDetectionTool** - Live code analysis with instant error detection and auto-fixing capabilities
+- **📊 CodeQualityMetricsTool** - Complexity analysis, maintainability scores, and technical debt calculation
+- **📦 SmartImportManagementTool** - Auto-organize imports, dead code elimination, and circular dependency detection
+
+**Security & Performance:**
 - **🛡️ SecurityTool** - Vulnerability scanning, secret detection, dependency auditing, XSS/SQL injection analysis
+- **🔒 SecurityVulnerabilityTool** - OWASP-compliant security scanning with CVSS scoring and compliance checking
 - **⚡ PerformanceTool** - Bundle analysis, code profiling, image optimization, Web Vitals monitoring
+- **🚀 PerformanceOptimizationTool** - Bottleneck identification with automated optimizations and performance metrics
+
+**Infrastructure & Deployment:**
 - **🚀 DeploymentTool** - Docker configs, CI/CD pipelines, Kubernetes, Terraform, Nginx setup, monitoring
 - **📦 PackageManagerTool** - Dependency analysis, license auditing, unused package detection, migration scripts
+
+**Integration & Utilities:**
 - **🌍 WebScrapingTool** - Intelligent web content extraction from documentation sites with code example preservation
-- **📝 Enhanced FileOperationTool** - Advanced file editing with find/replace, line insertion, and content manipulation
+- **📚 DocumentationTool** - Auto-generate comprehensive documentation from code structure and comments
+- **🔍 SearchTool** - Advanced codebase search with semantic understanding and context awareness
+- **💻 TerminalTool** - Safe command execution with workspace boundaries and output capture
+- **🌿 GitTool** - Version control operations with branch management and commit assistance
+- **🧪 TestingTool** - Comprehensive testing framework with coverage analysis and test optimization
 
 ### 🛡️ Security & Privacy
 - **Secure API Key Storage** - Uses VS Code's encrypted storage
@@ -485,15 +508,15 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] **Enhanced FileOperationTool** - Advanced editing with find/replace, line insertion, content manipulation
 - [x] **Multi-file Editing** - Edit multiple files simultaneously with AI coordination
 
-### v0.5.0 - Enhanced Agent Capabilities
-- [ ] **Advanced Code Review** - AI-powered code analysis with suggestions
-- [ ] **Auto-testing Generation** - Generate unit tests for selected code
-- [ ] **Code Refactoring Assistant** - Intelligent code restructuring suggestions
-- [ ] **Real-time Error Detection** - Live code analysis with fix suggestions
-- [ ] **Performance Optimization Scanner** - Identify and fix performance bottlenecks
-- [ ] **Security Vulnerability Detection** - Scan code for security issues
-- [ ] **Code Quality Metrics** - Complexity analysis and maintainability scores
-- [ ] **Smart Import Management** - Auto-organize and optimize imports
+### v0.5.0 - Enhanced Agent Capabilities ✅
+- [x] **Advanced Code Review** - AI-powered code analysis with suggestions
+- [x] **Auto-testing Generation** - Generate unit tests for selected code
+- [x] **Code Refactoring Assistant** - Intelligent code restructuring suggestions
+- [x] **Real-time Error Detection** - Live code analysis with fix suggestions
+- [x] **Performance Optimization Scanner** - Identify and fix performance bottlenecks
+- [x] **Security Vulnerability Detection** - Scan code for security issues
+- [x] **Code Quality Metrics** - Complexity analysis and maintainability scores
+- [x] **Smart Import Management** - Auto-organize and optimize imports
 
 ### v0.6.0 - Workspace Intelligence
 - [ ] **Documentation Generator** - Auto-generate docs from code comments and structure
