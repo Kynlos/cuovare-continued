@@ -260,19 +260,36 @@ cuovare/
 │   ├── agent/
 │   │   ├── AgentMode.ts          # Full Agent Mode orchestration
 │   │   ├── ToolRegistry.ts       # Dynamic tool discovery and management
-│   │   └── executors/            # Modular tool implementations (9 comprehensive tools)
-│   │       ├── FileOperationTool.ts  # Enhanced file operations (read, write, create, delete, edit)
-│   │       ├── TerminalTool.ts       # Safe terminal command execution
-│   │       ├── SearchTool.ts         # Code search and analysis
-│   │       ├── GitTool.ts            # Git operations and automation
-│   │       ├── DebuggingTool.ts      # Debugging, profiling, error analysis
-│   │       ├── DatabaseTool.ts       # Database schema, migrations, ORM generation
-│   │       ├── APITool.ts            # API testing, OpenAPI specs, client generation
-│   │       ├── SecurityTool.ts       # Security scans, vulnerability detection
-│   │       ├── PerformanceTool.ts    # Performance analysis, optimization
-│   │       ├── DeploymentTool.ts     # Docker, K8s, CI/CD, infrastructure
-│   │       ├── PackageManagerTool.ts # Dependency management, licensing
-│   │       └── WebScrapingTool.ts    # Intelligent web content extraction
+│   │   └── executors/            # Modular tool implementations (29 enterprise tools)
+│   │       ├── FileOperationTool.ts     # Enhanced file operations (read, write, create, delete, edit)
+│   │       ├── MultiFileEditingTool.ts  # Multi-file editing with AI coordination
+│   │       ├── TerminalTool.ts          # Safe terminal command execution
+│   │       ├── SearchTool.ts            # Code search and analysis
+│   │       ├── GitTool.ts               # Git operations and automation
+│   │       ├── TestingTool.ts           # Comprehensive testing framework
+│   │       ├── DebuggingTool.ts         # Debugging, profiling, error analysis
+│   │       ├── DatabaseTool.ts          # Database schema, migrations, ORM generation
+│   │       ├── APITool.ts               # API testing, OpenAPI specs, client generation
+│   │       ├── SecurityTool.ts          # Security scans, vulnerability detection
+│   │       ├── SecurityVulnerabilityTool.ts # OWASP security scanning
+│   │       ├── PerformanceTool.ts       # Performance analysis, optimization
+│   │       ├── PerformanceOptimizationTool.ts # Bottleneck identification
+│   │       ├── DeploymentTool.ts        # Docker, K8s, CI/CD, infrastructure
+│   │       ├── PackageManagerTool.ts    # Dependency management, licensing
+│   │       ├── WebScrapingTool.ts       # Intelligent web content extraction
+│   │       ├── AdvancedCodeReviewTool.ts # AI-powered code analysis
+│   │       ├── AutoTestGenerationTool.ts # Automated test generation
+│   │       ├── CodeRefactoringTool.ts   # Intelligent code restructuring
+│   │       ├── RealTimeErrorDetectionTool.ts # Live error detection
+│   │       ├── CodeQualityMetricsTool.ts # Complexity analysis
+│   │       ├── SmartImportManagementTool.ts # Import optimization
+│   │       # 🌟 v0.6.0 Workspace Intelligence Tools:
+│   │       ├── DocumentationTool.ts     # Auto-generate comprehensive docs
+│   │       ├── WorkspaceSearchTool.ts   # AI-powered workspace-wide search
+│   │       ├── CodeNavigationTool.ts    # Smart code navigation assistant
+│   │       ├── ProjectScaffoldingTool.ts # Generate projects with best practices
+│   │       ├── DatabaseSchemaTool.ts    # Visual database exploration
+│   │       └── APIDocumentationTool.ts  # Live API docs and OpenAPI specs
 │   ├── context/
 │   │   ├── ContextRetrievalEngine.ts  # Advanced semantic search engine
 │   │   ├── ContextIntegration.ts      # Integration layer for chat
@@ -288,6 +305,8 @@ cuovare/
 │   ├── context/                  # Integration tests (VS Code environment)
 │   └── runUnitTests.js          # Custom test runner
 ├── docs/
+│   ├── WORKSPACE_INTELLIGENCE.md # Complete v0.6.0 feature documentation
+│   ├── CHANGELOG.md             # Version history and release notes
 │   ├── AGENT_MODE.md            # Complete Agent Mode documentation
 │   ├── MODULAR_TOOL_SYSTEM.md  # Tool system architecture guide
 │   ├── DEVELOPMENT.md           # Development setup and workflow
@@ -295,6 +314,162 @@ cuovare/
 │   └── CONTRIBUTING.md         # Contributor guidelines
 └── package.json                # Extension manifest and dependencies
 ```
+
+### 🏛️ Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "🚀 Cuovare VS Code Extension"
+        direction TB
+        
+        subgraph "🎯 Core Extension"
+            EXT[extension.ts<br/>Main Entry Point]
+            EXT --> PROV[providers/]
+            PROV --> AI[AIProviderManager.ts<br/>Multi-Provider AI]
+            PROV --> CHAT[ChatViewProvider.ts<br/>Webview UI & Chat]
+        end
+        
+        subgraph "🤖 Agent System"
+            direction TB
+            AGENT[AgentMode.ts<br/>Orchestration]
+            REGISTRY[ToolRegistry.ts<br/>Dynamic Discovery]
+            AGENT --> REGISTRY
+            
+            subgraph "🛠️ Tool Categories"
+                direction LR
+                
+                subgraph "📁 File Operations"
+                    F1[FileOperationTool]
+                    F2[MultiFileEditingTool]
+                end
+                
+                subgraph "🔍 Search & Navigation"
+                    S1[SearchTool]
+                    S2[WorkspaceSearchTool ⭐]
+                    S3[CodeNavigationTool ⭐]
+                end
+                
+                subgraph "📚 Documentation"
+                    D1[DocumentationTool ⭐]
+                    D2[APIDocumentationTool ⭐]
+                end
+                
+                subgraph "🗄️ Database & API"
+                    DB1[DatabaseTool]
+                    DB2[DatabaseSchemaTool ⭐]
+                    API1[APITool]
+                end
+                
+                subgraph "🛡️ Security & Quality"
+                    SEC1[SecurityTool]
+                    SEC2[SecurityVulnerabilityTool]
+                    Q1[CodeQualityMetricsTool]
+                    Q2[AdvancedCodeReviewTool]
+                end
+                
+                subgraph "⚡ Performance"
+                    P1[PerformanceTool]
+                    P2[PerformanceOptimizationTool]
+                end
+                
+                subgraph "🏗️ Development"
+                    DEV1[ProjectScaffoldingTool ⭐]
+                    DEV2[DebuggingTool]
+                    DEV3[TestingTool]
+                    DEV4[AutoTestGenerationTool]
+                    DEV5[CodeRefactoringTool]
+                    DEV6[RealTimeErrorDetectionTool]
+                end
+                
+                subgraph "🚀 Deployment & Operations"
+                    OP1[DeploymentTool]
+                    OP2[PackageManagerTool]
+                    OP3[TerminalTool]
+                    OP4[GitTool]
+                end
+                
+                subgraph "🌐 Integration"
+                    INT1[WebScrapingTool]
+                    INT2[SmartImportManagementTool]
+                end
+            end
+            
+            REGISTRY --> F1
+            REGISTRY --> F2
+            REGISTRY --> S1
+            REGISTRY --> S2
+            REGISTRY --> S3
+            REGISTRY --> D1
+            REGISTRY --> D2
+            REGISTRY --> DB1
+            REGISTRY --> DB2
+            REGISTRY --> API1
+            REGISTRY --> SEC1
+            REGISTRY --> SEC2
+            REGISTRY --> Q1
+            REGISTRY --> Q2
+            REGISTRY --> P1
+            REGISTRY --> P2
+            REGISTRY --> DEV1
+            REGISTRY --> DEV2
+            REGISTRY --> DEV3
+            REGISTRY --> DEV4
+            REGISTRY --> DEV5
+            REGISTRY --> DEV6
+            REGISTRY --> OP1
+            REGISTRY --> OP2
+            REGISTRY --> OP3
+            REGISTRY --> OP4
+            REGISTRY --> INT1
+            REGISTRY --> INT2
+        end
+        
+        subgraph "🧠 Context System"
+            CTX[ContextRetrievalEngine.ts<br/>Semantic Search]
+            INT[ContextIntegration.ts<br/>Chat Integration]
+            FILE[FileContextManager.ts<br/>File Context]
+            CTX --> INT
+            INT --> FILE
+        end
+        
+        subgraph "🔌 MCP Integration"
+            MCP[MCPManager.ts<br/>Protocol Support]
+        end
+        
+        subgraph "🎨 Resources"
+            CSS[styles.css<br/>Modern UI]
+            JS[main.js<br/>Frontend Logic]
+            ICON[icon.png<br/>Extension Icon]
+        end
+        
+        subgraph "📖 Documentation"
+            DOC1[WORKSPACE_INTELLIGENCE.md<br/>v0.6.0 Features ⭐]
+            DOC2[CHANGELOG.md<br/>Version History ⭐]
+            DOC3[AGENT_MODE.md<br/>Agent Guide]
+            DOC4[DEVELOPMENT.md<br/>Dev Setup]
+        end
+    end
+    
+    EXT --> AGENT
+    CHAT --> CTX
+    CHAT --> MCP
+    AGENT --> CTX
+    
+    classDef newFeature fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef coreSystem fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef documentation fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    
+    class S2,S3,D1,D2,DB2,DEV1,DOC1,DOC2 newFeature
+    class EXT,AGENT,REGISTRY,CTX coreSystem
+    class DOC3,DOC4 documentation
+```
+
+**Legend:**
+- ⭐ **v0.6.0 Workspace Intelligence** - Latest features
+- 🎯 **Core Extension** - VS Code integration and UI
+- 🤖 **Agent System** - Autonomous AI development capabilities  
+- 🧠 **Context System** - Intelligent code understanding
+- 🔌 **MCP Integration** - External tool protocol support
 
 ## 🛠️ Development
 
