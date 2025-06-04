@@ -2,6 +2,14 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+export interface ToolResult {
+    success: boolean;
+    message?: string;  // Made optional for backward compatibility
+    data?: any;
+    result?: any;  // Legacy property for backward compatibility
+    error?: string; // Legacy property for error messages
+}
+
 export interface ToolMetadata {
     name: string;
     description: string;
@@ -21,7 +29,7 @@ export interface ToolExecutor {
         workspaceRoot: string;
         outputChannel: vscode.OutputChannel;
         onProgress?: (message: string) => void;
-    }): Promise<{ success: boolean; message: string; data?: any }>;
+    }): Promise<ToolResult>;
 }
 
 export class ToolRegistry {
@@ -150,7 +158,7 @@ export class ToolRegistry {
         workspaceRoot: string;
         outputChannel: vscode.OutputChannel;
         onProgress?: (message: string) => void;
-    }): Promise<{ success: boolean; message: string; data?: any }> {
+    }): Promise<ToolResult> {
         const tool = this.getTool(actionType);
         
         if (!tool) {

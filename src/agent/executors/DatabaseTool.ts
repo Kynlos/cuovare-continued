@@ -6,6 +6,32 @@ import { ToolExecutor, ToolResult } from '../ToolRegistry';
 export class DatabaseTool implements ToolExecutor {
     readonly name = 'database';
     readonly description = 'Database operations, schema management, and SQL query tools';
+    
+    readonly metadata = {
+        name: 'database',
+        description: 'Database operations, schema management, and SQL query tools',
+        category: 'Database',
+        parameters: [
+            {
+                name: 'action',
+                description: 'Database action to perform',
+                required: true,
+                type: 'string'
+            },
+            {
+                name: 'params',
+                description: 'Parameters for the action',
+                required: false,
+                type: 'object'
+            }
+        ],
+        examples: [
+            'Generate schema from TypeScript interfaces',
+            'Create database migration',
+            'Validate SQL queries',
+            'Optimize database queries'
+        ]
+    };
 
     readonly methods = {
         'generateSchema': {

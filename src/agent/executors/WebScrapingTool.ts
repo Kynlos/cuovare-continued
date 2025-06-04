@@ -6,6 +6,25 @@ import { URL } from 'url';
 export class WebScrapingTool implements ToolExecutor {
     readonly name = 'webscraping';
     readonly description = 'Scrape web content from URLs mentioned in user prompts for context enhancement';
+    
+    readonly metadata = {
+        name: 'webscraping',
+        description: 'Scrape web content from URLs mentioned in user prompts for context enhancement',
+        category: 'Web Scraping',
+        parameters: [
+            {
+                name: 'action',
+                description: 'Web scraping action to perform',
+                required: true,
+                type: 'string'
+            }
+        ],
+        examples: [
+            'Scrape web content',
+            'Extract documentation',
+            'Monitor websites'
+        ]
+    };
 
     readonly methods = {
         'scrapeUrl': {

@@ -2,7 +2,7 @@
   "name": "cuovare",
   "displayName": "Cuovare - Advanced AI Coding Assistant",
   "description": "The most beautiful and advanced AI coding assistant with multi-provider support, MCP integration, and intelligent codebase understanding",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "publisher": "cuovare",
   "icon": "resources/icon.png",
   "engines": {
@@ -63,6 +63,42 @@
         "title": "Debug MCP Servers",
         "category": "Cuovare",
         "icon": "$(debug)"
+      },
+      {
+        "command": "cuovare.enableAgentMode",
+        "title": "Enable Agent Mode",
+        "category": "Cuovare",
+        "icon": "$(robot)"
+      },
+      {
+        "command": "cuovare.disableAgentMode",
+        "title": "Disable Agent Mode",
+        "category": "Cuovare",
+        "icon": "$(circle-slash)"
+      },
+      {
+        "command": "cuovare.runCodeReview",
+        "title": "Run AI Code Review",
+        "category": "Cuovare",
+        "icon": "$(search-view-icon)"
+      },
+      {
+        "command": "cuovare.generateTests",
+        "title": "Generate Unit Tests",
+        "category": "Cuovare",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "cuovare.analyzePerformance",
+        "title": "Analyze Performance",
+        "category": "Cuovare",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "cuovare.scanSecurity",
+        "title": "Security Scan",
+        "category": "Cuovare",
+        "icon": "$(shield)"
       }
     ],
     "viewsContainers": {
@@ -89,16 +125,33 @@
         {
           "command": "cuovare.explainCode",
           "when": "editorHasSelection",
-          "group": "cuovare"
+          "group": "cuovare@1"
         },
         {
           "command": "cuovare.generateCode",
-          "group": "cuovare"
+          "group": "cuovare@2"
         },
         {
           "command": "cuovare.reviewCode",
           "when": "editorHasSelection",
-          "group": "cuovare"
+          "group": "cuovare@3"
+        },
+        {
+          "command": "cuovare.runCodeReview",
+          "group": "cuovare@4"
+        },
+        {
+          "command": "cuovare.generateTests",
+          "when": "editorHasSelection",
+          "group": "cuovare@5"
+        },
+        {
+          "command": "cuovare.analyzePerformance",
+          "group": "cuovare@6"
+        },
+        {
+          "command": "cuovare.scanSecurity",
+          "group": "cuovare@7"
         }
       ],
       "view/title": [
@@ -112,7 +165,7 @@
     "configuration": {
       "title": "Cuovare",
       "properties": {
-        "cuovare.defaultProvider": {
+        "cuovare.ai.defaultProvider": {
           "type": "string",
           "enum": [
             "openai",
@@ -125,50 +178,320 @@
             "openrouter"
           ],
           "default": "openai",
-          "description": "Default AI provider to use (will auto-select first available if this provider has no API key)"
+          "markdownDescription": "**Default AI Provider**\n\nChoose your preferred AI provider. Will auto-select first available if this provider has no API key configured.",
+          "order": 1
         },
-        "cuovare.selectedModels": {
+        "cuovare.ai.selectedModels": {
           "type": "object",
-          "description": "Selected model for each AI provider",
+          "markdownDescription": "**Selected Models**\n\nChoose specific models for each AI provider.",
           "properties": {
             "openai": {
               "type": "string",
-              "description": "Selected OpenAI model"
+              "description": "Selected OpenAI model (e.g., gpt-4, gpt-3.5-turbo)"
             },
             "anthropic": {
-              "type": "string",
-              "description": "Selected Anthropic model"
+              "type": "string", 
+              "description": "Selected Anthropic model (e.g., claude-3-sonnet, claude-3-haiku)"
             },
             "groq": {
               "type": "string",
-              "description": "Selected Groq model"
+              "description": "Selected Groq model (e.g., llama-3.1-70b, mixtral-8x7b)"
             },
             "grok": {
               "type": "string",
-              "description": "Selected Grok model"
+              "description": "Selected xAI Grok model"
             },
             "google": {
               "type": "string",
-              "description": "Selected Google AI model"
+              "description": "Selected Google AI model (e.g., gemini-pro, gemini-1.5-pro)"
             },
             "ollama": {
               "type": "string",
-              "description": "Selected Ollama model"
+              "description": "Selected Ollama model (e.g., llama3, codellama)"
             },
             "local": {
               "type": "string",
-              "description": "Selected Local/Custom model"
+              "description": "Selected Local/Custom model endpoint"
             },
             "openrouter": {
               "type": "string",
               "description": "Selected OpenRouter model"
             }
           },
-          "default": {}
+          "default": {},
+          "order": 2
+        },
+        "cuovare.ai.customModels": {
+          "type": "object",
+          "markdownDescription": "**Custom Models**\n\nAdd custom models for each provider that aren't in the default list.",
+          "properties": {
+            "openai": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Custom OpenAI-compatible models"
+            },
+            "anthropic": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Custom Anthropic models"
+            },
+            "groq": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Custom Groq models"
+            },
+            "grok": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Custom Grok models"
+            },
+            "openrouter": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Custom OpenRouter models"
+            }
+          },
+          "default": {},
+          "order": 3
+        },
+        "cuovare.ai.responseSettings": {
+          "type": "object",
+          "markdownDescription": "**Response Settings**\n\nControl how AI responses are generated and displayed.",
+          "properties": {
+            "temperature": {
+              "type": "number",
+              "default": 0.7,
+              "minimum": 0,
+              "maximum": 2,
+              "description": "Controls randomness in responses (0 = deterministic, 2 = very creative)"
+            },
+            "maxTokens": {
+              "type": "number",
+              "default": 4000,
+              "minimum": 100,
+              "maximum": 32000,
+              "description": "Maximum tokens in AI responses"
+            },
+            "streamResponses": {
+              "type": "boolean",
+              "default": true,
+              "description": "Stream responses in real-time for better UX"
+            }
+          },
+          "default": {},
+          "order": 4
+        },
+        "cuovare.agent.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Enable Agent Mode**\n\nAllow AI to autonomously execute tasks using the 23 available tools.",
+          "order": 10
+        },
+        "cuovare.agent.autoExecuteTools": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Auto-Execute Tools**\n\nAutomatically run tools when AI requests them (disable for manual approval).",
+          "order": 11
+        },
+        "cuovare.agent.maxConcurrentToolExecutions": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 10,
+          "markdownDescription": "**Max Concurrent Tools**\n\nMaximum number of tools that can execute simultaneously.",
+          "order": 12
+        },
+        "cuovare.agent.toolExecutionTimeout": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 5000,
+          "maximum": 120000,
+          "markdownDescription": "**Tool Timeout**\n\nTimeout for tool execution in milliseconds.",
+          "order": 13
+        },
+        "cuovare.agent.enabledTools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "api",
+              "database", 
+              "debugging",
+              "deployment",
+              "package",
+              "performance",
+              "security",
+              "webscraping",
+              "fileOperation",
+              "git",
+              "multiFileEditing",
+              "terminal",
+              "search",
+              "documentation",
+              "testing",
+              "refactoring",
+              "advancedCodeReview",
+              "autoTestGeneration",
+              "codeRefactoring",
+              "realTimeErrorDetection",
+              "performanceOptimization",
+              "securityVulnerability",
+              "codeQualityMetrics",
+              "smartImportManagement"
+            ]
+          },
+          "default": [
+            "api",
+            "database",
+            "debugging", 
+            "deployment",
+            "package",
+            "performance",
+            "security",
+            "webscraping",
+            "fileOperation",
+            "git",
+            "multiFileEditing",
+            "terminal",
+            "search",
+            "documentation",
+            "testing",
+            "refactoring",
+            "advancedCodeReview",
+            "autoTestGeneration",
+            "codeRefactoring",
+            "realTimeErrorDetection",
+            "performanceOptimization",
+            "securityVulnerability",
+            "codeQualityMetrics",
+            "smartImportManagement"
+          ],
+          "markdownDescription": "**Enabled Tools**\n\nSelect which of the 23 agent tools are available for AI to use.",
+          "uniqueItems": true,
+          "order": 14
+        },
+        "cuovare.agent.safetyControls": {
+          "type": "object",
+          "markdownDescription": "**Safety Controls**\n\nSafety settings for agent tool execution.",
+          "properties": {
+            "requireConfirmation": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["deployment", "database", "terminal"],
+              "description": "Tools that require user confirmation before execution"
+            },
+            "blockedCommands": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["rm -rf", "del /f", "format", "shutdown"],
+              "description": "Terminal commands that are blocked from execution"
+            },
+            "maxFileSize": {
+              "type": "number",
+              "default": 1048576,
+              "description": "Maximum file size (bytes) that tools can modify"
+            }
+          },
+          "default": {},
+          "order": 15
+        },
+        "cuovare.context.maxFiles": {
+          "type": "number",
+          "default": 50,
+          "minimum": 1,
+          "maximum": 200,
+          "markdownDescription": "**Max Context Files**\n\nMaximum number of files to include in context for AI understanding.",
+          "order": 20
+        },
+        "cuovare.context.autoIncludeOpenFiles": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Auto-Include Open Files**\n\nAutomatically include currently open files in context.",
+          "order": 21
+        },
+        "cuovare.context.intelligentFiltering": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Intelligent Filtering**\n\nUse semantic search to include only relevant files in context.",
+          "order": 22
+        },
+        "cuovare.context.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["node_modules/**", ".git/**", "dist/**", "build/**", "*.min.js"],
+          "markdownDescription": "**Exclude Patterns**\n\nFile patterns to exclude from context (glob patterns).",
+          "order": 23
+        },
+        "cuovare.context.maxTokensPerFile": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 100,
+          "maximum": 10000,
+          "markdownDescription": "**Max Tokens Per File**\n\nMaximum tokens to include from each file in context.",
+          "order": 24
+        },
+        "cuovare.ui.theme": {
+          "type": "string",
+          "enum": ["auto", "light", "dark"],
+          "default": "auto",
+          "markdownDescription": "**UI Theme**\n\nChoose the chat interface theme.",
+          "order": 30
+        },
+        "cuovare.ui.enableSyntaxHighlighting": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Syntax Highlighting**\n\nEnable syntax highlighting in code blocks.",
+          "order": 31
+        },
+        "cuovare.ui.showToolExecutionDetails": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Show Tool Details**\n\nShow detailed information when tools are executed.",
+          "order": 32
+        },
+        "cuovare.ui.autoScroll": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Auto-Scroll**\n\nAutomatically scroll to new messages in chat.",
+          "order": 33
+        },
+        "cuovare.ui.compactMode": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Compact Mode**\n\nUse a more compact layout for the chat interface.",
+          "order": 34
+        },
+        "cuovare.mcp.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Enable MCP**\n\nEnable Model Context Protocol support for external tools.",
+          "order": 40
+        },
+        "cuovare.mcp.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Auto-Start Servers**\n\nAutomatically start MCP servers when extension loads.",
+          "order": 41
         },
         "cuovare.mcpServers": {
           "type": "array",
-          "description": "MCP (Model Context Protocol) servers configuration",
+          "markdownDescription": "**MCP Servers**\n\nConfigure Model Context Protocol servers for additional tool integration.",
           "items": {
             "type": "object",
             "properties": {
@@ -206,83 +529,32 @@
             },
             "required": ["name", "command"]
           },
-          "default": []
+          "default": [],
+          "order": 42
         },
-        "cuovare.toolsEnabled": {
+        "cuovare.advanced.enableDebugLogging": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Debug Logging**\n\nEnable detailed debug logging (may affect performance).",
+          "order": 50
+        },
+        "cuovare.advanced.cacheResponses": {
           "type": "boolean",
           "default": true,
-          "description": "Enable MCP tool support in conversations"
+          "markdownDescription": "**Cache Responses**\n\nCache AI responses to improve performance for repeated queries.",
+          "order": 51
         },
-        "cuovare.autoExecuteTools": {
+        "cuovare.advanced.telemetryEnabled": {
           "type": "boolean",
-          "default": true,
-          "description": "Automatically execute tools when AI requests them"
+          "default": false,
+          "markdownDescription": "**Telemetry**\n\nSend anonymous usage data to help improve Cuovare (completely optional).",
+          "order": 52
         },
-        "cuovare.maxConcurrentToolExecutions": {
-          "type": "number",
-          "default": 5,
-          "minimum": 1,
-          "maximum": 10,
-          "description": "Maximum number of tools that can execute simultaneously"
-        },
-        "cuovare.toolExecutionTimeout": {
-          "type": "number",
-          "default": 30000,
-          "minimum": 5000,
-          "maximum": 120000,
-          "description": "Timeout for tool execution in milliseconds"
-        },
-        "cuovare.maxContextFiles": {
-          "type": "number",
-          "default": 50,
-          "description": "Maximum number of files to include in context"
-        },
-        "cuovare.autoIncludeOpenFiles": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically include open files in context"
-        },
-        "cuovare.chatSessions": {
+        "cuovare.internal.chatSessions": {
           "type": "array",
-          "description": "Saved chat sessions (managed automatically)",
-          "default": []
-        },
-        "cuovare.customModels": {
-          "type": "object",
-          "description": "Custom models added by user for each provider",
-          "properties": {
-            "openai": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "anthropic": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "groq": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "grok": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "openrouter": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "default": {}
+          "markdownDescription": "**Chat Sessions (Internal)**\n\nSaved chat sessions - managed automatically, do not modify.",
+          "default": [],
+          "order": 100
         }
       }
     }

@@ -1,11 +1,22 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { ToolExecutor, ToolResult } from '../ToolRegistry';
+import { ToolExecutor, ToolMetadata, ToolResult } from '../ToolRegistry';
 
 export class APITool implements ToolExecutor {
-    readonly name = 'api';
-    readonly description = 'API testing, documentation generation, and integration tools';
+    readonly metadata: ToolMetadata = {
+        name: 'api',
+        description: 'API testing, documentation generation, and integration tools',
+        category: 'API & Integration',
+        parameters: [
+            {
+                name: 'action',
+                description: 'API action to perform',
+                required: true,
+                type: 'string'
+            }
+        ]
+    };
 
     readonly methods = {
         'testEndpoint': {

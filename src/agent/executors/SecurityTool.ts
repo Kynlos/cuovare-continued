@@ -7,6 +7,25 @@ import { ToolExecutor, ToolResult } from '../ToolRegistry';
 export class SecurityTool implements ToolExecutor {
     readonly name = 'security';
     readonly description = 'Security analysis, vulnerability scanning, and secure coding practices';
+    
+    readonly metadata = {
+        name: 'security',
+        description: 'Security analysis, vulnerability scanning, and secure coding practices',
+        category: 'Security',
+        parameters: [
+            {
+                name: 'action',
+                description: 'Security action to perform',
+                required: true,
+                type: 'string'
+            }
+        ],
+        examples: [
+            'Scan for vulnerabilities',
+            'Audit code security',
+            'Check dependencies'
+        ]
+    };
 
     readonly methods = {
         'scanVulnerabilities': {

@@ -6,6 +6,25 @@ import { ToolExecutor, ToolResult } from '../ToolRegistry';
 export class PackageManagerTool implements ToolExecutor {
     readonly name = 'package';
     readonly description = 'Package management, dependency analysis, and project maintenance tools';
+    
+    readonly metadata = {
+        name: 'package',
+        description: 'Package management, dependency analysis, and project maintenance tools',
+        category: 'Package Management',
+        parameters: [
+            {
+                name: 'action',
+                description: 'Package management action',
+                required: true,
+                type: 'string'
+            }
+        ],
+        examples: [
+            'Analyze dependencies',
+            'Update packages',
+            'Check vulnerabilities'
+        ]
+    };
 
     readonly methods = {
         'analyzePackages': {

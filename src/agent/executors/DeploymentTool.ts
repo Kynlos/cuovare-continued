@@ -6,6 +6,25 @@ import { ToolExecutor, ToolResult } from '../ToolRegistry';
 export class DeploymentTool implements ToolExecutor {
     readonly name = 'deployment';
     readonly description = 'Deployment automation, CI/CD pipeline generation, and infrastructure management';
+    
+    readonly metadata = {
+        name: 'deployment',
+        description: 'Deployment automation, CI/CD pipeline generation, and infrastructure management',
+        category: 'Deployment',
+        parameters: [
+            {
+                name: 'action',
+                description: 'Deployment action to perform',
+                required: true,
+                type: 'string'
+            }
+        ],
+        examples: [
+            'Generate Dockerfile',
+            'Create CI/CD pipeline',
+            'Deploy to cloud platforms'
+        ]
+    };
 
     readonly methods = {
         'generateDockerfile': {

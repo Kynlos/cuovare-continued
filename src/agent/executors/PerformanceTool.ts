@@ -6,6 +6,25 @@ import { ToolExecutor, ToolResult } from '../ToolRegistry';
 export class PerformanceTool implements ToolExecutor {
     readonly name = 'performance';
     readonly description = 'Performance analysis, optimization, and monitoring tools';
+    
+    readonly metadata = {
+        name: 'performance',
+        description: 'Performance analysis, optimization, and monitoring tools',
+        category: 'Performance',
+        parameters: [
+            {
+                name: 'action',
+                description: 'Performance action to perform',
+                required: true,
+                type: 'string'
+            }
+        ],
+        examples: [
+            'Analyze bundle size',
+            'Profile memory usage',
+            'Optimize performance'
+        ]
+    };
 
     readonly methods = {
         'analyzeBundle': {

@@ -6,6 +6,32 @@ import { ToolExecutor, ToolResult } from '../ToolRegistry';
 export class DebuggingTool implements ToolExecutor {
     readonly name = 'debugging';
     readonly description = 'Debug and analyze code issues, breakpoints, and runtime behavior';
+    
+    readonly metadata = {
+        name: 'debugging',
+        description: 'Debug and analyze code issues, breakpoints, and runtime behavior',
+        category: 'Debugging',
+        parameters: [
+            {
+                name: 'action',
+                description: 'Debug action to perform',
+                required: true,
+                type: 'string'
+            },
+            {
+                name: 'params',
+                description: 'Parameters for the action',
+                required: false,
+                type: 'object'
+            }
+        ],
+        examples: [
+            'Set breakpoints in code',
+            'Analyze runtime behavior',
+            'Debug performance issues',
+            'Trace code execution'
+        ]
+    };
 
     readonly methods = {
         'setBreakpoint': {

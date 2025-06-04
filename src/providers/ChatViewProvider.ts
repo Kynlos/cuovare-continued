@@ -1621,85 +1621,387 @@ Return only the commit message, nothing else.`;
 
                     <!-- Content -->
                     <div class="flex-1 overflow-y-auto p-3 space-y-3">
-                        <!-- API Keys Section -->
-                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="w-6 h-6 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-md flex items-center justify-center">
-                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1 1 21 9z"/>
-                                    </svg>
+                        <!-- AI Providers & Models Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg">
+                            <button class="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/30 transition-all rounded-lg" onclick="toggleSection('ai-section')">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-md flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-slate-100">AI Providers & Models</h3>
+                                        <p class="text-xs text-slate-400">Configure AI providers, models, and response settings</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 class="text-sm font-semibold text-slate-100">API Keys</h3>
-                                    <p class="text-xs text-slate-400">Configure credentials</p>
-                                </div>
-                            </div>
-                            <div id="apiKeysContainer" class="space-y-2"></div>
-                        </section>
-
-                        <!-- AI Providers Section -->
-                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-md flex items-center justify-center">
-                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-semibold text-slate-100">AI Providers</h3>
-                                    <p class="text-xs text-slate-400">Select model & provider</p>
-                                </div>
-                            </div>
-                            <div class="space-y-3">
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform" id="ai-section-arrow">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" fill="none" stroke="currentColor"/>
+                                </svg>
+                            </button>
+                            <div id="ai-section-content" class="px-3 pb-3 space-y-3">
                                 <div class="space-y-2">
-                                    <label for="providerSelect" class="block text-xs font-medium text-slate-300">Provider</label>
-                                    <select id="providerSelect"
-                                        class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all">
+                                    <label for="providerSelect" class="block text-xs font-medium text-slate-300">Default Provider</label>
+                                    <select id="providerSelect" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all">
                                     </select>
                                 </div>
                                 <div id="modelSelectionContainer" class="space-y-2"></div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-medium text-slate-300">Selected Models</label>
+                                    <div id="selectedModelsContainer" class="space-y-2">
+                                        <!-- Selected models for each provider will be populated here -->
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-medium text-slate-300">Custom Models</label>
+                                    <div id="customModelsContainer" class="space-y-2">
+                                        <!-- Custom models for each provider will be populated here -->
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-medium text-slate-300">Response Settings</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label for="temperature" class="block text-xs text-slate-400">Temperature</label>
+                                            <input type="number" id="temperature" min="0" max="2" step="0.1" value="0.7" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label for="maxTokens" class="block text-xs text-slate-400">Max Tokens</label>
+                                            <input type="number" id="maxTokens" min="100" max="32000" value="4000" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="streamResponses" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                        <label for="streamResponses" class="text-xs text-slate-300">Stream responses</label>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-medium text-slate-300">API Keys</label>
+                                    <div id="apiKeysContainer" class="space-y-2"></div>
+                                </div>
                             </div>
                         </section>
 
-                        <!-- MCP Servers Section -->
-                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
-                            <div class="flex items-center justify-between mb-3">
+                        <!-- Agent System & Tools Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg">
+                            <button class="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/30 transition-all rounded-lg" onclick="toggleSection('agent-section')">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-md flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-slate-100">Agent System & Tools</h3>
+                                        <p class="text-xs text-slate-400">Configure agent capabilities and tool execution</p>
+                                    </div>
+                                </div>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform" id="agent-section-arrow">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" fill="none" stroke="currentColor"/>
+                                </svg>
+                            </button>
+                            <div id="agent-section-content" class="hidden px-3 pb-3 space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="agentEnabled" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="agentEnabled" class="text-xs text-slate-300">Enable Agent Mode</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="autoExecuteTools" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="autoExecuteTools" class="text-xs text-slate-300">Auto-execute tools</label>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label for="maxConcurrentTools" class="block text-xs font-medium text-slate-300">Max Concurrent Tools</label>
+                                        <input type="number" id="maxConcurrentTools" min="1" max="10" value="5" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                    </div>
+                                    <div>
+                                        <label for="toolExecutionTimeout" class="block text-xs font-medium text-slate-300">Tool Timeout (ms)</label>
+                                        <input type="number" id="toolExecutionTimeout" min="5000" max="120000" value="30000" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-medium text-slate-300">Safety Controls</label>
+                                    <div class="space-y-2">
+                                        <div>
+                                            <label for="requireConfirmationTools" class="block text-xs text-slate-400">Tools requiring confirmation:</label>
+                                            <input type="text" id="requireConfirmationTools" value="deployment, database, terminal" placeholder="deployment, database, terminal" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label for="blockedCommands" class="block text-xs text-slate-400">Blocked commands:</label>
+                                            <input type="text" id="blockedCommands" value="rm -rf, del /f, format, shutdown" placeholder="rm -rf, del /f, format" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label for="maxFileSize" class="block text-xs text-slate-400">Max file size (bytes):</label>
+                                            <input type="number" id="maxFileSize" value="1048576" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-medium text-slate-300">Available Tools (23 total)</label>
+                                    <div id="availableToolsContainer" class="space-y-1 max-h-32 overflow-y-auto border border-slate-700/50 rounded p-2 bg-slate-800/20">
+                                        <div class="grid grid-cols-2 gap-x-3 gap-y-1">
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-api" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">API Development</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-database" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Database</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-debugging" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Debugging</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-deployment" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Deployment</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-package" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Package Manager</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-performance" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Performance</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-security" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Security</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-webscraping" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Web Scraping</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-fileOperation" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">File Operations</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-git" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Git</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-multiFileEditing" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Multi-File Editing</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-terminal" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Terminal</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-search" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Search</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-documentation" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Documentation</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-testing" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Testing</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-refactoring" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Refactoring</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-advancedCodeReview" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Advanced Code Review</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-autoTestGeneration" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Auto Test Generation</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-codeRefactoring" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Code Refactoring</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-realTimeErrorDetection" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Real-time Error Detection</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-performanceOptimization" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Performance Optimization</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-securityVulnerability" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Security Vulnerability</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-codeQualityMetrics" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Code Quality Metrics</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs">
+                                                <input type="checkbox" id="tool-smartImportManagement" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                                <span class="text-slate-300">Smart Import Management</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Context & Understanding Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg">
+                            <button class="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/30 transition-all rounded-lg" onclick="toggleSection('context-section')">
                                 <div class="flex items-center gap-2">
                                     <div class="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-md flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-slate-100">Context & Understanding</h3>
+                                        <p class="text-xs text-slate-400">Configure codebase analysis and context settings</p>
+                                    </div>
+                                </div>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform" id="context-section-arrow">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" fill="none" stroke="currentColor"/>
+                                </svg>
+                            </button>
+                            <div id="context-section-content" class="hidden px-3 pb-3 space-y-3">
+                                <div class="space-y-2">
+                                    <label for="maxContextFiles" class="block text-xs font-medium text-slate-300">Max Context Files</label>
+                                    <input type="number" id="maxContextFiles" min="1" max="200" value="50" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="autoIncludeOpenFiles" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="autoIncludeOpenFiles" class="text-xs text-slate-300">Auto-include open files</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="intelligentFiltering" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="intelligentFiltering" class="text-xs text-slate-300">Intelligent filtering</label>
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="maxTokensPerFile" class="block text-xs font-medium text-slate-300">Max Tokens Per File</label>
+                                    <input type="number" id="maxTokensPerFile" min="100" max="10000" value="2000" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="excludePatterns" class="block text-xs font-medium text-slate-300">Exclude Patterns</label>
+                                    <textarea id="excludePatterns" rows="3" placeholder="node_modules/**, .git/**, *.min.js" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs resize-none"></textarea>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- User Interface Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg">
+                            <button class="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/30 transition-all rounded-lg" onclick="toggleSection('ui-section')">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-600 rounded-md flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4 4 4 0 004-4V5z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-slate-100">User Interface</h3>
+                                        <p class="text-xs text-slate-400">Customize appearance and behavior</p>
+                                    </div>
+                                </div>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform" id="ui-section-arrow">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" fill="none" stroke="currentColor"/>
+                                </svg>
+                            </button>
+                            <div id="ui-section-content" class="hidden px-3 pb-3 space-y-3">
+                                <div class="space-y-2">
+                                    <label for="uiTheme" class="block text-xs font-medium text-slate-300">Theme</label>
+                                    <select id="uiTheme" class="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded px-2 py-1 text-xs">
+                                        <option value="auto">Auto</option>
+                                        <option value="light">Light</option>
+                                        <option value="dark">Dark</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="syntaxHighlighting" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="syntaxHighlighting" class="text-xs text-slate-300">Syntax highlighting</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="showToolDetails" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="showToolDetails" class="text-xs text-slate-300">Show tool execution details</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="autoScroll" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="autoScroll" class="text-xs text-slate-300">Auto-scroll to new messages</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="compactMode" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="compactMode" class="text-xs text-slate-300">Compact mode</label>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Model Context Protocol Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg">
+                            <button class="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/30 transition-all rounded-lg" onclick="toggleSection('mcp-section')">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md flex items-center justify-center">
                                         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/>
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-semibold text-slate-100">MCP Servers</h3>
-                                        <p class="text-xs text-slate-400">Protocol integrations</p>
+                                        <h3 class="text-sm font-semibold text-slate-100">Model Context Protocol</h3>
+                                        <p class="text-xs text-slate-400">External integrations and server management</p>
                                     </div>
                                 </div>
-                                <button id="addMCPServerBtn"
-                                    class="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white rounded-md transition-all duration-200 text-xs">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                    </svg>
-                                    <span>Add</span>
-                                </button>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform" id="mcp-section-arrow">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" fill="none" stroke="currentColor"/>
+                                </svg>
+                            </button>
+                            <div id="mcp-section-content" class="hidden px-3 pb-3 space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="mcpEnabled" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="mcpEnabled" class="text-xs text-slate-300">Enable MCP</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="mcpAutoStart" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="mcpAutoStart" class="text-xs text-slate-300">Auto-start servers</label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-medium text-slate-300">MCP Servers</label>
+                                    <button id="addMCPServerBtn" class="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white rounded-md transition-all duration-200 text-xs">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        <span>Add</span>
+                                    </button>
+                                </div>
+                                <div id="mcpServersContainer" class="space-y-2"></div>
                             </div>
-                            <div id="mcpServersContainer" class="space-y-2"></div>
                         </section>
 
-                        <!-- Available Tools Section -->
-                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="w-6 h-6 bg-gradient-to-br from-pink-500 to-rose-600 rounded-md flex items-center justify-center">
-                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                                    </svg>
+                        <!-- Advanced Features Section -->
+                        <section class="bg-slate-800/40 border border-slate-700/50 rounded-lg">
+                            <button class="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/30 transition-all rounded-lg" onclick="toggleSection('advanced-section')">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-md flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1 1 21 9z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-slate-100">Advanced Features</h3>
+                                        <p class="text-xs text-slate-400">Debug logging, caching, and experimental options</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 class="text-sm font-semibold text-slate-100">Available Tools</h3>
-                                    <p class="text-xs text-slate-400">External capabilities</p>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform" id="advanced-section-arrow">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" fill="none" stroke="currentColor"/>
+                                </svg>
+                            </button>
+                            <div id="advanced-section-content" class="hidden px-3 pb-3 space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="debugLogging" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="debugLogging" class="text-xs text-slate-300">Enable debug logging</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="cacheResponses" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="cacheResponses" class="text-xs text-slate-300">Cache AI responses</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="telemetryEnabled" class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                                    <label for="telemetryEnabled" class="text-xs text-slate-300">Anonymous telemetry (optional)</label>
                                 </div>
                             </div>
-                            <div id="mcpToolsContainer" class="space-y-2"></div>
                         </section>
                     </div>
                 </div>
@@ -1781,6 +2083,21 @@ Return only the commit message, nothing else.`;
         </div>
     </div>
 
+    <script>
+        // Toggle collapsible sections
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId + '-content');
+            const arrow = document.getElementById(sectionId + '-arrow');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                arrow.style.transform = 'rotate(90deg)';
+            } else {
+                content.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
     <script src="${scriptUri}"></script>
 </body>
 </html>`;
