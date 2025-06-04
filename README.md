@@ -60,7 +60,7 @@
 - **Safe Operations** - Built-in safeguards with workspace boundaries and command whitelisting
 - **Extensible Design** - Easy to add new tools without modifying core agent logic
 
-### 🛠️ Comprehensive Developer Toolkit (23 Tools)
+### 🛠️ Comprehensive Developer Toolkit (29 Tools)
 **Core Development Tools:**
 - **🐛 DebuggingTool** - Breakpoints, error analysis, dead code detection, memory leak detection
 - **🗄️ DatabaseTool** - Schema generation, migrations, ORM models, query optimization, API generation
@@ -93,6 +93,14 @@
 - **💻 TerminalTool** - Safe command execution with workspace boundaries and output capture
 - **🌿 GitTool** - Version control operations with branch management and commit assistance
 - **🧪 TestingTool** - Comprehensive testing framework with coverage analysis and test optimization
+
+**Workspace Intelligence (v0.6.0):**
+- **📝 Enhanced DocumentationTool** - Auto-generate docs from code comments and structure with multi-language support
+- **🔍 WorkspaceSearchTool** - AI-powered workspace-wide search and replace with intelligent pattern matching
+- **🧭 CodeNavigationTool** - Smart code navigation with go-to-definition, reference finding, and symbol exploration
+- **🏗️ ProjectScaffoldingTool** - Generate new projects with best practices and modern tooling
+- **🗄️ DatabaseSchemaTool** - Visual database exploration, schema analysis, and query generation
+- **📡 APIDocumentationTool** - Live API documentation generation, endpoint testing, and OpenAPI specification management
 
 ### 🛡️ Security & Privacy
 - **Secure API Key Storage** - Uses VS Code's encrypted storage
@@ -423,15 +431,27 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 
 ## 🆕 Recent Updates
 
-### v0.4.0 - Revolutionary Agent System ⭐ **LATEST!**
+### v0.6.0 - Workspace Intelligence ⭐ **LATEST!**
+- **🏗️ Complete Workspace Intelligence Suite**: Six new enterprise-grade tools for comprehensive development workflow
+- **📚 Documentation Generator**: Auto-generate docs from code comments and structure with multi-language support (TypeScript, JavaScript, Python, Java)
+- **🔍 Workspace-wide Search & Replace**: AI-powered intelligent search with symbol finding, reference tracking, and safe replace operations
+- **🧭 Code Navigation Assistant**: Smart go-to-definition, reference finding, call hierarchy, and symbol exploration across multiple languages
+- **🏗️ Project Scaffolding**: Generate new projects with best practices - React, Express, FastAPI, Vue, Spring Boot templates
+- **🗄️ Database Schema Understanding**: Visual database exploration, schema analysis, query generation, and optimization for PostgreSQL, MySQL, SQLite, MongoDB
+- **📡 API Documentation Integration**: Live API docs generation, endpoint testing, OpenAPI spec management, and client generation for Express, FastAPI, Spring Boot
+- **📊 Enhanced Agent Capabilities**: All tools fully integrated with Agent Mode for autonomous development workflows
+- **🎯 Performance Optimizations**: Intelligent caching, incremental updates, and parallel processing for large codebases
+- **📖 Comprehensive Documentation**: Complete guides and examples for all Workspace Intelligence features
+
+### v0.4.0 - Revolutionary Agent System ✅
 - **🚀 Modular Tool System**: Dynamic tool discovery and LLM integration for infinite extensibility
 - **🤖 True Agent Behavior**: Agent now executes tasks instead of just providing information
 - **🔧 Plug-and-Play Tools**: Add new capabilities by creating files in `/executors` directory
 - **⚡ Enhanced Planning**: Improved AI planning that focuses on concrete deliverables
 - **🛡️ Smart Safety**: Workspace boundaries, command whitelisting, and user oversight
 - **📈 Better Task Understanding**: Agent properly interprets user intent and creates actual results
-- **🛠️ Comprehensive Toolkit**: 9 sophisticated tools covering debugging, databases, APIs, security, performance, deployment, package management, web scraping, and advanced file editing
-- **📝 10,000+ Lines of Code**: Enterprise-grade tooling for complete development workflows
+- **🛠️ Comprehensive Toolkit**: 23 sophisticated tools covering debugging, databases, APIs, security, performance, deployment, package management, web scraping, and advanced file editing
+- **📝 15,000+ Lines of Code**: Enterprise-grade tooling for complete development workflows
 - **🌍 Internet Access**: Intelligent web scraping for documentation and code examples with domain whitelisting
 - **🔌 Extensible Architecture**: Easy to add new tools without modifying core agent logic
 
@@ -518,13 +538,13 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] **Code Quality Metrics** - Complexity analysis and maintainability scores
 - [x] **Smart Import Management** - Auto-organize and optimize imports
 
-### v0.6.0 - Workspace Intelligence
-- [ ] **Documentation Generator** - Auto-generate docs from code comments and structure
-- [ ] **Workspace-wide Search & Replace** - AI-powered find and replace across projects
-- [ ] **Code Navigation Assistant** - Smart go-to-definition and reference finding
-- [ ] **Project Scaffolding** - Generate new projects with best practices
-- [ ] **Database Schema Understanding** - Visual database exploration and queries
-- [ ] **API Documentation Integration** - Live API docs and endpoint testing
+### v0.6.0 - Workspace Intelligence ✅
+- [x] **Documentation Generator** - Auto-generate docs from code comments and structure
+- [x] **Workspace-wide Search & Replace** - AI-powered find and replace across projects
+- [x] **Code Navigation Assistant** - Smart go-to-definition and reference finding
+- [x] **Project Scaffolding** - Generate new projects with best practices
+- [x] **Database Schema Understanding** - Visual database exploration and queries
+- [x] **API Documentation Integration** - Live API docs and endpoint testing
 
 ### v0.7.0 - Advanced Features
 - [ ] **Voice Input/Output** - Talk to your AI coding assistant
@@ -594,8 +614,10 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 ## 📞 Support
 
 - **Documentation**: [docs/](docs/)
+  - **[🏗️ Workspace Intelligence Guide](docs/WORKSPACE_INTELLIGENCE.md)** - Complete v0.6.0 feature documentation
   - **[🤖 Agent Mode Guide](docs/AGENT_MODE.md)** - Complete guide to autonomous AI development
   - **[🔧 MCP Integration](docs/MCP_ENHANCED_GUIDE.md)** - External tool setup and configuration
+  - **[📋 Changelog](docs/CHANGELOG.md)** - Version history and release notes
   - **[👩‍💻 Development Guide](docs/DEVELOPMENT.md)** - Contributing to Cuovare
 - **Issues**: [GitHub Issues](https://github.com/Kynlos/cuovare/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Kynlos/cuovare/discussions)
