@@ -8,15 +8,22 @@ export class FileOperationTool implements ToolExecutor {
         description: 'Perform file operations like read, write, create, delete, edit, copy, and move files',
         category: 'File Operations',
         parameters: [
-            { name: 'operation', description: 'Type of operation: read, write, create, delete, copy, move', required: true, type: 'string' },
+            { name: 'operation', description: 'Type of operation: read, write, create, delete, copy, move, edit', required: true, type: 'string' },
             { name: 'filePath', description: 'Path to the file (relative to workspace)', required: true, type: 'string' },
             { name: 'content', description: 'Content for write/create operations', required: false, type: 'string' },
-            { name: 'targetPath', description: 'Target path for copy/move operations', required: false, type: 'string' }
+            { name: 'targetPath', description: 'Target path for copy/move operations', required: false, type: 'string' },
+            { name: 'searchText', description: 'Text to search for in edit operations', required: false, type: 'string' },
+            { name: 'replaceText', description: 'Text to replace with in edit operations', required: false, type: 'string' },
+            { name: 'lineNumber', description: 'Line number for line-specific edit operations', required: false, type: 'number' },
+            { name: 'insertAt', description: 'Position to insert content: start, end, or line number', required: false, type: 'string' }
         ],
         examples: [
             'Read a file: { "operation": "read", "filePath": "src/index.ts" }',
             'Create a new file: { "operation": "create", "filePath": "src/utils.ts", "content": "export const helper = () => {};" }',
             'Write to file: { "operation": "write", "filePath": "src/app.ts", "content": "console.log(\'Hello World\');" }',
+            'Edit file (find/replace): { "operation": "edit", "filePath": "src/app.ts", "searchText": "old code", "replaceText": "new code" }',
+            'Edit file (insert at line): { "operation": "edit", "filePath": "src/app.ts", "content": "new line", "lineNumber": 5 }',
+            'Edit file (append): { "operation": "edit", "filePath": "src/app.ts", "content": "new content", "insertAt": "end" }',
             'Copy a file: { "operation": "copy", "filePath": "src/component.tsx", "targetPath": "src/component.backup.tsx" }',
             'Move a file: { "operation": "move", "filePath": "old/path.ts", "targetPath": "new/path.ts" }'
         ]
@@ -106,6 +113,71 @@ export class FileOperationTool implements ToolExecutor {
                     }
                     fs.renameSync(filePath, moveTargetPath);
                     return { success: true, message: `Moved ${path.basename(filePath)} to ${path.basename(moveTargetPath)}` };
+
+                case 'edit':
+                    if (!fs.existsSync(filePath)) {
+                        throw new Error(`File not found: ${payload.filePath}`);
+                    }
+                    const originalContent = fs.readFileSync(filePath, 'utf8');
+                    let editedContent = originalContent;
+                    let editMessage = '';
+
+                    if (payload.searchText && payload.replaceText !== undefined) {
+                        // Find and replace operation
+                        const beforeLength = editedContent.length;
+                        editedContent = editedContent.replace(new RegExp(payload.searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), payload.replaceText);
+                        const replacements = (beforeLength - editedContent.length + payload.replaceText.length * (editedContent.split(payload.replaceText).length - 1)) / payload.searchText.length;
+                        editMessage = `Replaced ${Math.floor(replacements)} occurrence(s) of "${payload.searchText}" with "${payload.replaceText}"`;
+                    } else if (payload.lineNumber && payload.content) {
+                        // Insert at specific line
+                        const lines = editedContent.split('\n');
+                        const insertIndex = Math.max(0, Math.min(payload.lineNumber - 1, lines.length));
+                        lines.splice(insertIndex, 0, payload.content);
+                        editedContent = lines.join('\n');
+                        editMessage = `Inserted content at line ${payload.lineNumber}`;
+                    } else if (payload.insertAt && payload.content) {
+                        // Insert at position
+                        switch (payload.insertAt.toLowerCase()) {
+                            case 'start':
+                                editedContent = payload.content + '\n' + editedContent;
+                                editMessage = 'Inserted content at the beginning of file';
+                                break;
+                            case 'end':
+                                editedContent = editedContent + '\n' + payload.content;
+                                editMessage = 'Appended content to the end of file';
+                                break;
+                            default:
+                                const lineNum = parseInt(payload.insertAt);
+                                if (!isNaN(lineNum)) {
+                                    const lines = editedContent.split('\n');
+                                    const insertIndex = Math.max(0, Math.min(lineNum - 1, lines.length));
+                                    lines.splice(insertIndex, 0, payload.content);
+                                    editedContent = lines.join('\n');
+                                    editMessage = `Inserted content at line ${lineNum}`;
+                                } else {
+                                    throw new Error('Invalid insertAt value. Use "start", "end", or a line number');
+                                }
+                        }
+                    } else if (payload.content) {
+                        // Replace entire content
+                        editedContent = payload.content;
+                        editMessage = 'Replaced entire file content';
+                    } else {
+                        throw new Error('Edit operation requires either searchText/replaceText, lineNumber/content, insertAt/content, or just content');
+                    }
+
+                    fs.writeFileSync(filePath, editedContent, 'utf8');
+                    
+                    // Try to open file in VS Code if available
+                    try {
+                        const vscode = require('vscode');
+                        const uri = vscode.Uri.file(filePath);
+                        await vscode.window.showTextDocument(uri);
+                    } catch {
+                        // VS Code not available
+                    }
+                    
+                    return { success: true, message: `Edited ${path.basename(filePath)}: ${editMessage}` };
 
                 default:
                     throw new Error(`Unknown file operation: ${payload.operation}`);
