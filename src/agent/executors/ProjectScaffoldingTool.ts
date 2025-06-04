@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ToolExecutor, ToolResult } from '../ToolRegistry';
+import { ToolExecutor, ToolResult, ToolMetadata } from '../ToolRegistry';
 
 interface ProjectTemplate {
     name: string;
@@ -38,24 +38,25 @@ interface ScaffoldOptions {
 }
 
 export class ProjectScaffoldingTool implements ToolExecutor {
-    static metadata = {
+    public metadata: ToolMetadata = {
         name: 'ProjectScaffoldingTool',
         description: 'Generate new projects with best practices and modern tooling',
-        parameters: {
-            action: 'create-project | list-templates | create-template | add-feature',
-            template: 'Project template name or type',
-            projectName: 'Name of the new project',
-            targetDir: 'Target directory for project creation',
-            language: 'Programming language (typescript, javascript, python, java, etc.)',
-            framework: 'Framework to use (react, vue, express, fastapi, spring, etc.)',
-            features: 'Additional features (testing, docs, ci, docker, etc.)',
-            includeTests: 'Include test setup (boolean)',
-            includeDocs: 'Include documentation (boolean)',
-            includeCI: 'Include CI/CD configuration (boolean)',
-            includeDocker: 'Include Docker configuration (boolean)',
-            gitInit: 'Initialize git repository (boolean)',
-            installDeps: 'Install dependencies after creation (boolean)'
-        }
+        category: 'Project Management',
+        parameters: [
+            { name: 'action', description: 'create-project | list-templates | create-template | add-feature', required: true, type: 'string' },
+            { name: 'template', description: 'Project template name or type', required: false, type: 'string' },
+            { name: 'projectName', description: 'Name of the new project', required: false, type: 'string' },
+            { name: 'language', description: 'Programming language (typescript, javascript, python, java, etc.)', required: false, type: 'string' },
+            { name: 'framework', description: 'Framework to use (react, vue, express, fastapi, spring, etc.)', required: false, type: 'string' },
+            { name: 'features', description: 'Additional features (testing, docs, ci, docker, etc.)', required: false, type: 'string' },
+            { name: 'includeTests', description: 'Include test setup (boolean)', required: false, type: 'boolean' },
+            { name: 'includeCI', description: 'Include CI/CD configuration (boolean)', required: false, type: 'boolean' }
+        ],
+        examples: [
+            'Create React project: { "action": "create-project", "template": "react-typescript", "projectName": "my-app" }',
+            'List templates: { "action": "list-templates", "language": "typescript" }',
+            'Add features: { "action": "add-feature", "features": "testing,ci,docker" }'
+        ]
     };
 
     private templates: Map<string, ProjectTemplate> = new Map();
@@ -64,7 +65,7 @@ export class ProjectScaffoldingTool implements ToolExecutor {
         this.initializeTemplates();
     }
 
-    async execute(params: Record<string, any>): Promise<ToolResult> {
+    async execute(params: any, context: { workspaceRoot: string; outputChannel: any; onProgress?: (message: string) => void }): Promise<ToolResult> {
         const { 
             action, template, projectName, targetDir, language, framework, features,
             includeTests, includeDocs, includeCI, includeDocker, gitInit, installDeps

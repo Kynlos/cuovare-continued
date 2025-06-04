@@ -5,26 +5,33 @@ All notable changes to the Cuovare VS Code extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - v0.6.0 - Workspace Intelligence
+## [0.6.0] - Workspace Intelligence ✅
 
-### 🚧 In Development
+### Added
+- **📚 Documentation Generator Tool** - Auto-generate comprehensive docs from code comments and structure with multi-language support (TypeScript, JavaScript, Python, Java)
+- **🔍 Workspace-wide Search & Replace Tool** - AI-powered intelligent search with symbol finding, reference tracking, and safe replace operations with backup support
+- **🧭 Code Navigation Assistant Tool** - Smart go-to-definition, reference finding, call hierarchy, and symbol exploration across multiple languages
+- **🏗️ Project Scaffolding Tool** - Generate new projects with best practices - React, Express, FastAPI, Vue, Spring Boot templates with modern tooling
+- **🗄️ Database Schema Understanding Tool** - Visual database exploration, schema analysis, query generation, and optimization for PostgreSQL, MySQL, SQLite, MongoDB, Redis
+- **📡 API Documentation Integration Tool** - Live API docs generation, endpoint testing, OpenAPI spec management, and client generation for Express, FastAPI, Spring Boot
 
-#### Added
-- [ ] **Documentation Generator** - Auto-generate docs from code comments and structure
-- [ ] **Workspace-wide Search & Replace** - AI-powered find and replace across projects  
-- [ ] **Code Navigation Assistant** - Smart go-to-definition and reference finding
-- [ ] **Project Scaffolding** - Generate new projects with best practices
-- [ ] **Database Schema Understanding** - Visual database exploration and queries
-- [ ] **API Documentation Integration** - Live API docs and endpoint testing
+### Enhanced
+- **🛠️ Comprehensive Tool Suite** - Enhanced from 23 to 29 enterprise-grade development tools
+- **🚀 Agent Mode Integration** - All Workspace Intelligence tools fully integrated with autonomous development workflows
+- **🎯 Performance Optimizations** - Intelligent caching, incremental updates, and parallel processing for large codebases
+- **📖 Multi-language Support** - Extended language support across TypeScript, JavaScript, Python, Java, C++, Go, Rust, PHP, Ruby
 
-#### Changed
-- [ ] Enhanced Agent Mode with new workspace intelligence tools
-- [ ] Improved context understanding for large codebases
+### Technical
+- Added 6 new tool executors with 4,000+ lines of enterprise-grade code
+- Enhanced ToolRegistry for dynamic tool discovery and metadata support
+- Implemented intelligent caching and performance optimizations
+- Added comprehensive error handling and workspace safety controls
+- Created extensive documentation suite with CHANGELOG.md and WORKSPACE_INTELLIGENCE.md
 
-#### Technical
-- [ ] New tool executors in `src/agent/executors/`
-- [ ] Enhanced ToolRegistry for dynamic discovery
-- [ ] Updated settings panel with new tool configurations
+### Documentation
+- **📋 CHANGELOG.md** - Complete version history and release tracking
+- **🏗️ WORKSPACE_INTELLIGENCE.md** - Comprehensive v0.6.0 feature documentation with examples
+- **📖 Updated README.md** - Reflects all new capabilities and enhanced toolkit
 
 ---
 

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ToolExecutor, ToolResult } from '../ToolRegistry';
+import { ToolExecutor, ToolResult, ToolMetadata } from '../ToolRegistry';
 
 interface DatabaseConnection {
     type: 'postgresql' | 'mysql' | 'sqlite' | 'mongodb' | 'redis';
@@ -122,29 +122,29 @@ interface ParameterSchema {
 }
 
 export class DatabaseSchemaTool implements ToolExecutor {
-    static metadata = {
+    public metadata: ToolMetadata = {
         name: 'DatabaseSchemaTool',
         description: 'Visual database exploration, schema analysis, and query generation',
-        parameters: {
-            action: 'connect | explore-schema | analyze-table | generate-query | export-schema | compare-schemas | optimize-schema',
-            connectionString: 'Database connection string',
-            dbType: 'Database type (postgresql, mysql, sqlite, mongodb, redis)',
-            host: 'Database host',
-            port: 'Database port (number)',
-            database: 'Database name',
-            username: 'Database username',
-            password: 'Database password',
-            table: 'Table name for analysis',
-            query: 'SQL query to analyze or execute',
-            outputFormat: 'Output format (json, sql, markdown, diagram)',
-            includeData: 'Include sample data in analysis (boolean)',
-            includeStats: 'Include table statistics (boolean)'
-        }
+        category: 'Database',
+        parameters: [
+            { name: 'action', description: 'connect | explore-schema | analyze-table | generate-query | export-schema | compare-schemas | optimize-schema', required: true, type: 'string' },
+            { name: 'connectionString', description: 'Database connection string', required: false, type: 'string' },
+            { name: 'dbType', description: 'Database type (postgresql, mysql, sqlite, mongodb, redis)', required: false, type: 'string' },
+            { name: 'host', description: 'Database host', required: false, type: 'string' },
+            { name: 'database', description: 'Database name', required: false, type: 'string' },
+            { name: 'table', description: 'Table name for analysis', required: false, type: 'string' },
+            { name: 'outputFormat', description: 'Output format (json, sql, markdown, diagram)', required: false, type: 'string' }
+        ],
+        examples: [
+            'Explore schema: { "action": "explore-schema", "connectionString": "postgresql://user:pass@localhost/db" }',
+            'Analyze table: { "action": "analyze-table", "table": "users", "includeStats": true }',
+            'Generate query: { "action": "generate-query", "queryType": "select", "table": "users" }'
+        ]
     };
 
     private connections: Map<string, any> = new Map();
 
-    async execute(params: Record<string, any>): Promise<ToolResult> {
+    async execute(params: any, context: { workspaceRoot: string; outputChannel: any; onProgress?: (message: string) => void }): Promise<ToolResult> {
         const { 
             action, connectionString, dbType, host, port, database, 
             username, password, table, query, outputFormat, 

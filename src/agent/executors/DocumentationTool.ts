@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ToolExecutor, ToolResult } from '../ToolRegistry';
+import { ToolExecutor, ToolResult, ToolMetadata } from '../ToolRegistry';
 
 interface FileStructure {
     name: string;
@@ -82,32 +82,36 @@ interface DocGenerationOptions {
 }
 
 export class DocumentationTool implements ToolExecutor {
-    static metadata = {
+    public metadata: ToolMetadata = {
         name: 'DocumentationTool',
         description: 'Auto-generate comprehensive documentation from code comments and structure',
-        parameters: {
-            action: 'generate-docs | analyze-structure | create-readme | extract-api',
-            path: 'Target file or directory path',
-            options: 'Documentation generation options (JSON)',
-            format: 'Output format: markdown | html | json',
-            includePrivate: 'Include private members (boolean)',
-            includeTests: 'Include test files (boolean)',
-            outputDir: 'Output directory for generated docs'
-        }
+        category: 'Documentation',
+        parameters: [
+            { name: 'action', description: 'generate-docs | analyze-structure | create-readme | extract-api', required: true, type: 'string' },
+            { name: 'path', description: 'Target file or directory path', required: false, type: 'string' },
+            { name: 'options', description: 'Documentation generation options (JSON)', required: false, type: 'object' },
+            { name: 'format', description: 'Output format: markdown | html | json', required: false, type: 'string' },
+            { name: 'includePrivate', description: 'Include private members (boolean)', required: false, type: 'boolean' },
+            { name: 'includeTests', description: 'Include test files (boolean)', required: false, type: 'boolean' },
+            { name: 'outputDir', description: 'Output directory for generated docs', required: false, type: 'string' }
+        ],
+        examples: [
+            'Generate docs: { "action": "generate-docs", "path": "./src", "format": "markdown" }',
+            'Analyze structure: { "action": "analyze-structure", "path": "./src/components" }',
+            'Create README: { "action": "create-readme", "path": "./" }'
+        ]
     };
 
-    async execute(params: Record<string, any>): Promise<ToolResult> {
+    async execute(params: any, context: { workspaceRoot: string; outputChannel: any; onProgress?: (message: string) => void }): Promise<ToolResult> {
         const { action, path: targetPath, options, format, includePrivate, includeTests, outputDir } = params;
 
         try {
-            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-            if (!workspaceFolder) {
-                return { success: false, message: 'No workspace folder found' };
-            }
-
+            context.onProgress?.(`Starting documentation generation: ${action}`);
+            
+            const workspaceRoot = context.workspaceRoot;
             const resolvedPath = targetPath ? 
-                path.resolve(workspaceFolder.uri.fsPath, targetPath) : 
-                workspaceFolder.uri.fsPath;
+                path.resolve(workspaceRoot, targetPath) : 
+                workspaceRoot;
 
             const docOptions: DocGenerationOptions = {
                 includePrivate: includePrivate || false,
@@ -117,7 +121,7 @@ export class DocumentationTool implements ToolExecutor {
                 includeTypeDefinitions: true,
                 generateIndex: true,
                 includeSourceLinks: true,
-                outputDirectory: outputDir || path.join(workspaceFolder.uri.fsPath, 'docs'),
+                outputDirectory: outputDir || path.join(workspaceRoot, 'docs'),
                 ...options
             };
 

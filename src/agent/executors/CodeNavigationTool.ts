@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ToolExecutor, ToolResult } from '../ToolRegistry';
+import { ToolExecutor, ToolResult, ToolMetadata } from '../ToolRegistry';
 
 interface NavigationResult {
     type: 'definition' | 'reference' | 'implementation' | 'declaration';
@@ -46,20 +46,23 @@ interface TypeHierarchy {
 }
 
 export class CodeNavigationTool implements ToolExecutor {
-    static metadata = {
+    public metadata: ToolMetadata = {
         name: 'CodeNavigationTool',
         description: 'Smart code navigation with go-to-definition, find references, and symbol exploration',
-        parameters: {
-            action: 'go-to-definition | find-references | find-implementations | find-declarations | symbol-outline | call-hierarchy | type-hierarchy | workspace-symbols',
-            symbol: 'Symbol name to navigate to or analyze',
-            file: 'File path for context-aware navigation',
-            line: 'Line number for cursor position (number)',
-            column: 'Column number for cursor position (number)',
-            includeDeclarations: 'Include declarations in results (boolean)',
-            includeReferences: 'Include references in results (boolean)',
-            maxResults: 'Maximum number of results (number)',
-            showPreview: 'Show code preview for results (boolean)'
-        }
+        category: 'Navigation',
+        parameters: [
+            { name: 'action', description: 'go-to-definition | find-references | find-implementations | find-declarations | symbol-outline | call-hierarchy | type-hierarchy | workspace-symbols', required: true, type: 'string' },
+            { name: 'symbol', description: 'Symbol name to navigate to or analyze', required: true, type: 'string' },
+            { name: 'file', description: 'File path for context-aware navigation', required: false, type: 'string' },
+            { name: 'line', description: 'Line number for cursor position (number)', required: false, type: 'number' },
+            { name: 'maxResults', description: 'Maximum number of results (number)', required: false, type: 'number' },
+            { name: 'showPreview', description: 'Show code preview for results (boolean)', required: false, type: 'boolean' }
+        ],
+        examples: [
+            'Go to definition: { "action": "go-to-definition", "symbol": "processPayment", "file": "./src/payment.ts" }',
+            'Find references: { "action": "find-references", "symbol": "UserService" }',
+            'Symbol outline: { "action": "symbol-outline", "file": "./src/UserService.ts" }'
+        ]
     };
 
     private readonly supportedExtensions = [
@@ -67,7 +70,7 @@ export class CodeNavigationTool implements ToolExecutor {
         '.hpp', '.go', '.rs', '.php', '.rb', '.swift', '.kt', '.scala', '.dart'
     ];
 
-    async execute(params: Record<string, any>): Promise<ToolResult> {
+    async execute(params: any, context: { workspaceRoot: string; outputChannel: any; onProgress?: (message: string) => void }): Promise<ToolResult> {
         const { 
             action, symbol, file, line, column, 
             includeDeclarations, includeReferences, maxResults, showPreview 

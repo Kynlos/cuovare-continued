@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ToolExecutor, ToolResult } from '../ToolRegistry';
+import { ToolExecutor, ToolResult, ToolMetadata } from '../ToolRegistry';
 
 interface SearchResult {
     file: string;
@@ -39,25 +39,25 @@ interface ReplaceOptions extends SearchOptions {
 }
 
 export class WorkspaceSearchTool implements ToolExecutor {
-    static metadata = {
+    public metadata: ToolMetadata = {
         name: 'WorkspaceSearchTool',
         description: 'AI-powered workspace-wide search and replace with intelligent pattern matching',
-        parameters: {
-            action: 'search | replace | find-references | find-definitions | search-symbols',
-            pattern: 'Search pattern (string or regex)',
-            replacement: 'Replacement text (for replace operations)',
-            files: 'File patterns to include (comma-separated)',
-            excludeFiles: 'File patterns to exclude (comma-separated)',
-            dirs: 'Directory patterns to include (comma-separated)',
-            excludeDirs: 'Directory patterns to exclude (comma-separated)',
-            caseSensitive: 'Case sensitive search (boolean)',
-            wholeWord: 'Match whole words only (boolean)',
-            regex: 'Use regular expressions (boolean)',
-            maxResults: 'Maximum number of results (number)',
-            contextLines: 'Number of context lines (number)',
-            dryRun: 'Preview changes without applying (boolean)',
-            createBackup: 'Create backup files before replacing (boolean)'
-        }
+        category: 'Search & Navigation',
+        parameters: [
+            { name: 'action', description: 'search | replace | find-references | find-definitions | search-symbols', required: true, type: 'string' },
+            { name: 'pattern', description: 'Search pattern (string or regex)', required: true, type: 'string' },
+            { name: 'replacement', description: 'Replacement text (for replace operations)', required: false, type: 'string' },
+            { name: 'files', description: 'File patterns to include (comma-separated)', required: false, type: 'string' },
+            { name: 'excludeFiles', description: 'File patterns to exclude (comma-separated)', required: false, type: 'string' },
+            { name: 'caseSensitive', description: 'Case sensitive search (boolean)', required: false, type: 'boolean' },
+            { name: 'regex', description: 'Use regular expressions (boolean)', required: false, type: 'boolean' },
+            { name: 'dryRun', description: 'Preview changes without applying (boolean)', required: false, type: 'boolean' }
+        ],
+        examples: [
+            'Search: { "action": "search", "pattern": "authenticateUser" }',
+            'Replace: { "action": "replace", "pattern": "oldFunction", "replacement": "newFunction", "dryRun": true }',
+            'Find references: { "action": "find-references", "pattern": "UserService" }'
+        ]
     };
 
     private defaultExcludeDirs = [
@@ -72,7 +72,7 @@ export class WorkspaceSearchTool implements ToolExecutor {
         'yarn.lock', 'pnpm-lock.yaml', '.DS_Store', 'Thumbs.db'
     ];
 
-    async execute(params: Record<string, any>): Promise<ToolResult> {
+    async execute(params: any, context: { workspaceRoot: string; outputChannel: any; onProgress?: (message: string) => void }): Promise<ToolResult> {
         const { 
             action, pattern, replacement, files, excludeFiles, dirs, excludeDirs,
             caseSensitive, wholeWord, regex, maxResults, contextLines,

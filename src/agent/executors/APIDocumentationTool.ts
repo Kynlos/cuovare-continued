@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ToolExecutor, ToolResult } from '../ToolRegistry';
+import { ToolExecutor, ToolResult, ToolMetadata } from '../ToolRegistry';
 
 interface APIEndpoint {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD';
@@ -153,22 +153,25 @@ interface TestCase {
 }
 
 export class APIDocumentationTool implements ToolExecutor {
-    static metadata = {
+    public metadata: ToolMetadata = {
         name: 'APIDocumentationTool',
         description: 'Live API documentation generation, endpoint testing, and OpenAPI specification management',
-        parameters: {
-            action: 'generate-openapi | test-endpoints | extract-from-code | validate-spec | generate-client | generate-tests | serve-docs',
-            sourceDir: 'Source directory to scan for API endpoints',
-            specFile: 'OpenAPI specification file path',
-            outputDir: 'Output directory for generated files',
-            baseUrl: 'Base URL for API testing',
-            format: 'Output format (json, yaml, html)',
-            includeExamples: 'Include examples in documentation (boolean)',
-            includeTests: 'Generate test cases (boolean)',
-            framework: 'API framework (express, fastapi, spring, etc.)',
-            language: 'Target language for client generation (typescript, python, java, etc.)',
-            templateDir: 'Custom template directory for documentation'
-        }
+        category: 'Documentation',
+        parameters: [
+            { name: 'action', description: 'generate-openapi | test-endpoints | extract-from-code | validate-spec | generate-client | generate-tests | serve-docs', required: true, type: 'string' },
+            { name: 'sourceDir', description: 'Source directory to scan for API endpoints', required: false, type: 'string' },
+            { name: 'specFile', description: 'OpenAPI specification file path', required: false, type: 'string' },
+            { name: 'outputDir', description: 'Output directory for generated files', required: false, type: 'string' },
+            { name: 'baseUrl', description: 'Base URL for API testing', required: false, type: 'string' },
+            { name: 'format', description: 'Output format (json, yaml, html)', required: false, type: 'string' },
+            { name: 'framework', description: 'API framework (express, fastapi, spring, etc.)', required: false, type: 'string' },
+            { name: 'language', description: 'Target language for client generation (typescript, python, java, etc.)', required: false, type: 'string' }
+        ],
+        examples: [
+            'Generate OpenAPI: { "action": "generate-openapi", "sourceDir": "./src/routes", "framework": "express" }',
+            'Test endpoints: { "action": "test-endpoints", "specFile": "./openapi.yaml", "baseUrl": "http://localhost:3000" }',
+            'Generate client: { "action": "generate-client", "specFile": "./openapi.yaml", "language": "typescript" }'
+        ]
     };
 
     private readonly frameworkParsers = new Map<string, (file: string, content: string) => APIEndpoint[]>();
@@ -177,7 +180,7 @@ export class APIDocumentationTool implements ToolExecutor {
         this.initializeFrameworkParsers();
     }
 
-    async execute(params: Record<string, any>): Promise<ToolResult> {
+    async execute(params: any, context: { workspaceRoot: string; outputChannel: any; onProgress?: (message: string) => void }): Promise<ToolResult> {
         const { 
             action, sourceDir, specFile, outputDir, baseUrl, format, 
             includeExamples, includeTests, framework, language, templateDir 
