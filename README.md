@@ -162,24 +162,35 @@ Show me how the database layer connects to the API endpoints
 ```
 
 ### 🤖 Agent Mode Examples
+
+**Documentation Creation**
 ```
-# Documentation Creation
-"Document the authentication system" → Reads auth files, creates comprehensive docs
+Request: "Document the authentication system"
+Progress: Step 1/3: Reading `auth.ts` → Step 2/3: Creating `auth-docs.md` → Step 3/3: Writing to `README.md`
+Result: 🎉 Task Completed Successfully!
+        • Analyzed authentication files
+        • Created comprehensive documentation
+        Files created: `auth-documentation.md`
+```
 
-# Feature Development  
-"Create a new React component with TypeScript and tests" → Writes actual code files
+**Feature Development**
+```  
+Request: "Create a new React component with TypeScript and tests"
+Progress: Step 1/4: Creating `UserProfile.tsx` → Step 2/4: Creating `UserProfile.test.tsx` → ...
+Result: 🎉 Task Completed Successfully!
+        • Created React component with TypeScript
+        • Generated comprehensive test suite
+        Files created: `UserProfile.tsx`, `UserProfile.test.tsx`, `index.ts`
+```
 
-# Bug Investigation & Fixes
-"Fix the memory leak in data processing" → Identifies issue, implements solution
-
-# Project Setup
-"Set up a new microservice with Express and Docker" → Creates full project structure
-
-# Code Refactoring
-"Refactor authentication to use JWT tokens" → Modifies existing codebase safely
-
-# Automated Analysis
-"Review code quality and suggest improvements" → Analyzes and creates improvement plan
+**Bug Investigation & Fixes**
+```
+Request: "Fix the memory leak in data processing"
+Progress: Step 1/3: Searching for "memory leak" → Step 2/3: Reading `processor.ts` → Step 3/3: Writing to `processor.ts`
+Result: 🎉 Task Completed Successfully!
+        • Identified memory leak in event listeners
+        • Implemented proper cleanup mechanisms
+        Files modified: `processor.ts`, `cleanup-utils.ts`
 ```
 
 ## 🏗️ Project Structure

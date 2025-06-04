@@ -201,7 +201,9 @@ REMEMBER: You are building something, fixing something, or creating something. N
             plan.currentActionIndex = i;
             const action = plan.actions[i];
             
-            this.outputChannel.appendLine(`\n📍 Step ${i + 1}/${plan.actions.length}: ${action.description}`);
+            // Create a user-friendly progress message
+            const progressMsg = this.createProgressMessage(action, i + 1, plan.actions.length);
+            this.outputChannel.appendLine(`\n📍 ${progressMsg}`);
             
             try {
                 action.status = 'executing';
@@ -403,15 +405,136 @@ Remember: You are an AGENT that EXECUTES tasks, not a chatbot that provides info
         const completedActions = plan.actions.filter(a => a.status === 'completed').length;
         const failedActions = plan.actions.filter(a => a.status === 'failed').length;
 
-        return `🤖 Agent Execution Summary
+        // Extract key file operations and achievements
+        const fileOperations = this.extractFileOperations(plan.actions);
+        const achievements = this.extractAchievements(plan.actions, results);
 
-Goal: ${plan.goal}
-Duration: ${Math.round(duration / 1000)}s
-Actions: ${completedActions} completed, ${failedActions} failed
+        let summary = `🎉 **Task Completed Successfully!**\n\n`;
+        
+        if (achievements.length > 0) {
+            summary += `**What I accomplished:**\n${achievements.map(a => `• ${a}`).join('\n')}\n\n`;
+        }
 
-${results.join('\n\n')}
+        if (fileOperations.length > 0) {
+            summary += `**Files created/modified:**\n${fileOperations.map(f => `• ${f}`).join('\n')}\n\n`;
+        }
 
-${failedActions > 0 ? '\n⚠️ Some actions failed. Check the output for details.' : '✅ All actions completed successfully!'}`;
+        summary += `*Completed in ${Math.round(duration / 1000)}s with ${completedActions} action${completedActions !== 1 ? 's' : ''}*`;
+
+        if (failedActions > 0) {
+            summary += `\n\n⚠️ *${failedActions} action${failedActions !== 1 ? 's' : ''} encountered issues - check the output log for details*`;
+        }
+
+        return summary;
+    }
+
+    private extractFileOperations(actions: AgentAction[]): string[] {
+        const fileOps: string[] = [];
+        
+        for (const action of actions) {
+            if (action.status === 'completed' && action.type === 'file_operation' && action.result) {
+                const result = action.result;
+                if (result.includes('Created') || result.includes('Wrote')) {
+                    // Extract filename from result
+                    const match = result.match(/(?:Created|Wrote) ([^\s]+)/);
+                    if (match) {
+                        const operation = result.includes('Created') ? 'Created' : 'Updated';
+                        fileOps.push(`${operation} \`${match[1]}\``);
+                    }
+                } else if (result.includes('Copied')) {
+                    const match = result.match(/Copied ([^\s]+) to ([^\s]+)/);
+                    if (match) {
+                        fileOps.push(`Copied \`${match[1]}\` to \`${match[2]}\``);
+                    }
+                } else if (result.includes('Moved')) {
+                    const match = result.match(/Moved ([^\s]+) to ([^\s]+)/);
+                    if (match) {
+                        fileOps.push(`Moved \`${match[1]}\` to \`${match[2]}\``);
+                    }
+                }
+            }
+        }
+        
+        return fileOps;
+    }
+
+    private extractAchievements(actions: AgentAction[], results: string[]): string[] {
+        const achievements: string[] = [];
+        
+        for (const action of actions) {
+            if (action.status === 'completed') {
+                // Convert technical action descriptions to user-friendly achievements
+                let achievement = action.description;
+                
+                // Simplify common patterns
+                if (achievement.toLowerCase().includes('read') && achievement.toLowerCase().includes('file')) {
+                    achievement = `Analyzed ${this.extractFilename(action.payload?.filePath) || 'files'}`;
+                } else if (achievement.toLowerCase().includes('create') && achievement.toLowerCase().includes('documentation')) {
+                    achievement = `Created comprehensive documentation`;
+                } else if (achievement.toLowerCase().includes('terminal') || achievement.toLowerCase().includes('command')) {
+                    achievement = `Executed necessary commands`;
+                } else if (achievement.toLowerCase().includes('search')) {
+                    achievement = `Searched and analyzed codebase`;
+                } else if (achievement.toLowerCase().includes('git')) {
+                    achievement = `Performed version control operations`;
+                }
+                
+                achievements.push(achievement);
+            }
+        }
+        
+        return achievements;
+    }
+
+    private extractFilename(filePath?: string): string | null {
+        if (!filePath) return null;
+        return filePath.split(/[/\\]/).pop() || null;
+    }
+
+    private createProgressMessage(action: AgentAction, step: number, total: number): string {
+        const stepInfo = `Step ${step}/${total}`;
+        
+        // Create user-friendly descriptions based on action type and description
+        if (action.type === 'file_operation') {
+            const filePath = action.payload?.filePath;
+            const operation = action.payload?.operation;
+            const filename = this.extractFilename(filePath) || filePath || 'file';
+            
+            switch (operation) {
+                case 'read':
+                    return `${stepInfo}: Reading \`${filename}\``;
+                case 'create':
+                    return `${stepInfo}: Creating \`${filename}\``;
+                case 'write':
+                    return `${stepInfo}: Writing to \`${filename}\``;
+                case 'delete':
+                    return `${stepInfo}: Deleting \`${filename}\``;
+                case 'copy':
+                    const target = this.extractFilename(action.payload?.targetPath) || action.payload?.targetPath;
+                    return `${stepInfo}: Copying \`${filename}\` to \`${target}\``;
+                case 'move':
+                    const moveTarget = this.extractFilename(action.payload?.targetPath) || action.payload?.targetPath;
+                    return `${stepInfo}: Moving \`${filename}\` to \`${moveTarget}\``;
+                default:
+                    return `${stepInfo}: Working on \`${filename}\``;
+            }
+        } else if (action.type === 'terminal') {
+            const command = action.payload?.command;
+            return `${stepInfo}: Running command \`${command}\``;
+        } else if (action.type === 'search_analysis') {
+            const query = action.payload?.query;
+            return `${stepInfo}: Searching for "${query}"`;
+        } else if (action.type === 'git_operation') {
+            const operation = action.payload?.operation;
+            return `${stepInfo}: Git ${operation}`;
+        } else {
+            // Fallback to simplified action description
+            let desc = action.description;
+            if (desc.length > 60) {
+                desc = desc.substring(0, 57) + '...';
+            }
+            return `${stepInfo}: ${desc}`;
+        }
     }
 
     private isCriticalError(error: any): boolean {
