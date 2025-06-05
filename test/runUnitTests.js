@@ -16,9 +16,13 @@ mocha.addFile(path.resolve(__dirname, '../out/test/unit/CodeSnippetsLibrary.unit
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/FileTreeManipulator.unit.test.js'));
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/AdvancedPluginSystem.unit.test.js'));
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/AuditLoggingSystem.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/AdvancedFormattingEngine.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/CodeStyleEnforcement.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/PerformanceProfiling.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/DependencyManagement.unit.test.js'));
 
 // Run the tests
-console.log('Running Cuovare Complete Unit Test Suite (v0.7.0 + v0.8.0)...\n');
+console.log('Running Cuovare Complete Unit Test Suite (v0.7.0 + v0.8.0 + v0.9.0)...\n');
 
 mocha.run(failures => {
     if (failures > 0) {
