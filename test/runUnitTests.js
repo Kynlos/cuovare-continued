@@ -14,9 +14,11 @@ mocha.addFile(path.resolve(__dirname, '../out/test/unit/ContextIntegration.unit.
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/AdvancedContextFilter.unit.test.js'));
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/CodeSnippetsLibrary.unit.test.js'));
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/FileTreeManipulator.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/AdvancedPluginSystem.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/AuditLoggingSystem.unit.test.js'));
 
 // Run the tests
-console.log('Running Cuovare v0.7.0 Complete Unit Test Suite...\n');
+console.log('Running Cuovare Complete Unit Test Suite (v0.7.0 + v0.8.0)...\n');
 
 mocha.run(failures => {
     if (failures > 0) {
