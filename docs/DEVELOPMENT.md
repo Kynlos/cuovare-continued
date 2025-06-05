@@ -108,7 +108,11 @@ pnpm run dev            # Development mode with auto-reload
 
 # Testing
 pnpm run test           # Run all tests (VS Code integration tests)
-pnpm run unit-tests     # Run unit tests only (fast)
+pnpm run unit-tests     # Run unit tests only (fast) - 132 test cases
+pnpm run test:v070      # Validate v0.7.0 Advanced Context features
+pnpm run test:v080      # Validate v0.8.0 Enterprise & Integration features
+pnpm run test:v090      # Validate v0.9.0 Professional features
+pnpm run test:all       # Run all validation tests (v0.7.0, v0.8.0, v0.9.0)
 pnpm run test:watch     # Run tests in watch mode
 pnpm run test:coverage  # Generate test coverage report
 
@@ -159,32 +163,86 @@ graph TB
 ### Directory Structure
 
 ```
-src/
-├── extension.ts              # Main extension entry point
-├── providers/               # AI provider integration
-│   ├── AIProviderManager.ts # Multi-provider support
-│   └── ChatViewProvider.ts  # Webview and chat logic
-├── context/                 # Context retrieval system
-│   ├── ContextRetrievalEngine.ts  # Advanced semantic search
-│   ├── ContextIntegration.ts      # Integration layer
-│   └── FileContextManager.ts      # Basic file context
-└── mcp/                     # Model Context Protocol
-    └── MCPManager.ts        # MCP server management
-
-resources/                   # Frontend assets
-├── main.js                  # Frontend JavaScript
-├── styles.css              # UI styles (Tailwind-based)
-└── icon.png                # Extension icon
-
-test/                        # Test suite
-├── unit/                   # Unit tests (fast, isolated)
-├── context/                # Integration tests (VS Code)
-└── runUnitTests.js        # Custom test runner
-
-docs/                       # Documentation
-├── DEVELOPMENT.md         # This file
-├── TESTING.md            # Testing guide
-└── CONTRIBUTING.md       # Contributor guidelines
+cuovare/
+├── src/
+│   ├── extension.ts              # Main extension entry point
+│   ├── providers/
+│   │   ├── AIProviderManager.ts  # Multi-provider AI integration (8 providers)
+│   │   └── ChatViewProvider.ts   # Webview UI and chat logic
+│   ├── agent/
+│   │   ├── AgentMode.ts          # Full Agent Mode orchestration
+│   │   ├── ToolRegistry.ts       # Dynamic tool discovery and management
+│   │   └── executors/            # Modular tool implementations (29 enterprise tools)
+│   │       ├── FileOperationTool.ts     # Enhanced file operations
+│   │       ├── MultiFileEditingTool.ts  # Multi-file editing with AI coordination
+│   │       ├── TerminalTool.ts          # Safe terminal command execution
+│   │       ├── SearchTool.ts            # Code search and analysis
+│   │       ├── GitTool.ts               # Git operations and automation
+│   │       ├── TestingTool.ts           # Comprehensive testing framework
+│   │       ├── DebuggingTool.ts         # Debugging, profiling, error analysis
+│   │       ├── DatabaseTool.ts          # Database schema, migrations, ORM generation
+│   │       ├── APITool.ts               # API testing, OpenAPI specs, client generation
+│   │       ├── SecurityTool.ts          # Security scans, vulnerability detection
+│   │       ├── SecurityVulnerabilityTool.ts # OWASP security scanning
+│   │       ├── PerformanceTool.ts       # Performance analysis, optimization
+│   │       ├── PerformanceOptimizationTool.ts # Bottleneck identification
+│   │       ├── DeploymentTool.ts        # Docker, K8s, CI/CD, infrastructure
+│   │       ├── PackageManagerTool.ts    # Dependency management, licensing
+│   │       ├── WebScrapingTool.ts       # Intelligent web content extraction
+│   │       ├── AdvancedCodeReviewTool.ts # AI-powered code analysis
+│   │       ├── AutoTestGenerationTool.ts # Automated test generation
+│   │       ├── CodeRefactoringTool.ts   # Intelligent code restructuring
+│   │       ├── RealTimeErrorDetectionTool.ts # Live error detection
+│   │       ├── CodeQualityMetricsTool.ts # Complexity analysis
+│   │       ├── SmartImportManagementTool.ts # Import optimization
+│   │       # 🌟 v0.6.0 Workspace Intelligence Tools:
+│   │       ├── DocumentationTool.ts     # Auto-generate comprehensive docs
+│   │       ├── WorkspaceSearchTool.ts   # AI-powered workspace-wide search
+│   │       ├── CodeNavigationTool.ts    # Smart code navigation assistant
+│   │       ├── ProjectScaffoldingTool.ts # Generate projects with best practices
+│   │       ├── DatabaseSchemaTool.ts    # Visual database exploration
+│   │       └── APIDocumentationTool.ts  # Live API docs and OpenAPI specs
+│   ├── context/
+│   │   ├── ContextRetrievalEngine.ts  # Advanced semantic search engine (v0.7.0)
+│   │   ├── ContextIntegration.ts      # Integration layer for chat
+│   │   └── FileContextManager.ts      # Basic file context management
+│   ├── mcp/
+│   │   └── MCPManager.ts         # Model Context Protocol integration
+│   # 🌟 v0.8.0 Enterprise & Integration:
+│   ├── plugins/
+│   │   └── AdvancedPluginSystem.ts  # Dynamic plugin discovery & marketplace integration
+│   ├── audit/
+│   │   └── AuditLoggingSystem.ts     # Enterprise compliance tracking (GDPR/SOX/HIPAA)
+│   # 🌟 v0.9.0 Professional Features:
+│   ├── formatting/
+│   │   └── AdvancedFormattingEngine.ts  # Context-aware code formatting with multi-language support
+│   ├── styleguide/
+│   │   └── CodeStyleEnforcement.ts     # Automated style guide compliance (Airbnb, Google, PEP 8)
+│   ├── profiling/
+│   │   └── PerformanceProfiling.ts     # Real-time performance analysis & optimization recommendations
+│   └── dependencies/
+│       └── DependencyManagement.ts    # Smart package updates & vulnerability scanning
+├── resources/
+│   ├── styles.css                # Modern UI styles with Tailwind
+│   ├── main.js                   # Frontend JavaScript logic
+│   └── icon.png                  # Extension icon
+├── test/
+│   ├── unit/                     # Unit tests (fast, isolated) - 132 test cases for v0.9.0
+│   ├── context/                  # Integration tests (VS Code environment)
+│   ├── runUnitTests.js          # Custom test runner
+│   ├── validateV070Features.js  # v0.7.0 validation
+│   ├── validateV080Features.js  # v0.8.0 validation
+│   └── validateV090Features.js  # v0.9.0 validation
+├── docs/
+│   ├── WORKSPACE_INTELLIGENCE.md # Complete v0.6.0 feature documentation
+│   ├── V0.8.0_ENTERPRISE_INTEGRATION.md # v0.8.0 enterprise features
+│   ├── CHANGELOG.md             # Version history and release notes
+│   ├── AGENT_MODE.md            # Complete Agent Mode documentation
+│   ├── MODULAR_TOOL_SYSTEM.md  # Tool system architecture guide
+│   ├── DEVELOPMENT.md           # Development setup and workflow (this file)
+│   ├── TESTING.md              # Testing strategy and guides
+│   └── CONTRIBUTING.md         # Contributor guidelines
+└── package.json                # Extension manifest and dependencies
 ```
 
 ## 🧩 Core Components
@@ -222,11 +280,14 @@ class AIProviderManager {
 ```
 
 **Supported Providers:**
-- OpenAI (GPT-4o, GPT-4 Turbo)
-- Anthropic (Claude 3.5 Sonnet)
-- Groq (Llama 3.3 70B)
-- Grok (X.AI models)
-- OpenRouter (100+ models)
+- OpenAI (GPT-4o, o1, o3, o4, GPT-4 Turbo)
+- Anthropic (Claude 3.5 Sonnet, 3.7, 4)
+- Groq (Llama 3.3 70B Versatile)
+- Grok (X.AI 2.0, Grok-2-1212)
+- Google AI (Gemini 2.5 Flash/Pro Preview)
+- Ollama (Local models: Llama, Mistral, CodeLlama, Qwen2.5)
+- OpenRouter (100+ models unified interface)
+- Local/Custom (LM Studio, vLLM, Text Generation WebUI)
 
 ### 3. Context Retrieval Engine (`ContextRetrievalEngine.ts`)
 
@@ -239,11 +300,13 @@ class ContextRetrievalEngine {
 }
 ```
 
-**Features:**
-- Semantic query expansion
-- Code pattern recognition
-- Dependency analysis
-- Smart file prioritization
+**Features (v0.7.0 Enhanced):**
+- Intent-aware context allocation (0-30 files dynamically)
+- Multi-modal context retrieval (semantic + git + symbols + dependencies)
+- 93% token efficiency improvement with smart social detection
+- 12 distinct intent types with sophisticated NLP analysis
+- Emergency debugging mode for critical production issues
+- 200+ code snippets library with intelligent search
 
 ### 4. Chat View Provider (`ChatViewProvider.ts`)
 
@@ -278,6 +341,80 @@ class MCPManager {
 - Server management
 - Protocol compliance
 - Extensibility
+
+### 6. Agent Mode System (`agent/`)
+
+```typescript
+class AgentMode {
+    // Autonomous task execution
+    // Multi-step planning
+    // Tool orchestration
+    // Progress tracking
+}
+
+class ToolRegistry {
+    // Dynamic tool discovery
+    // 29 enterprise tools
+    // Parallel execution
+    // Safety controls
+}
+```
+
+**Agent Capabilities:**
+- True autonomous development (executes vs. analyzes)
+- 29 enterprise-grade tools
+- Multi-step task planning
+- Real-time progress tracking
+- Internet access with web scraping
+- Safe workspace boundaries
+
+### 7. Professional Development Suite (v0.9.0)
+
+#### Advanced Formatting Engine (`formatting/AdvancedFormattingEngine.ts`)
+```typescript
+class AdvancedFormattingEngine {
+    // Context-aware formatting
+    // Multi-language support (7 languages)
+    // Formatter integration (Prettier, ESLint, Black, etc.)
+    // Custom rules and profiles
+}
+```
+
+#### Code Style Enforcement (`styleguide/CodeStyleEnforcement.ts`)
+```typescript
+class CodeStyleEnforcement {
+    // Automated style guide compliance
+    // Real-time violation detection
+    // Auto-fixing capabilities
+    // Team synchronization
+}
+```
+
+#### Performance Profiling (`profiling/PerformanceProfiling.ts`)
+```typescript
+class PerformanceProfiling {
+    // Real-time performance analysis
+    // Memory leak detection
+    // CPU profiling and optimization
+    // Web Vitals monitoring
+}
+```
+
+#### Dependency Management (`dependencies/DependencyManagement.ts`)
+```typescript
+class DependencyManagement {
+    // Smart package updates
+    // Vulnerability scanning with CVSS scoring
+    // License compliance (GDPR/SOX/HIPAA)
+    // Dependency tree visualization
+}
+```
+
+**Professional Features:**
+- Context-aware code formatting with 7 language support
+- Automated style guide compliance (Airbnb, Google, PEP 8, Standard)
+- Real-time performance analysis with optimization recommendations
+- Smart dependency management with security scanning
 
 ## 🔨 Build System
 

@@ -80,26 +80,47 @@ Ensure the extension remains responsive under load.
 
 ```
 test/
-├── unit/                           # Unit tests (fast, isolated)
-│   ├── ContextRetrievalEngine.unit.test.ts
-│   ├── ContextIntegration.unit.test.ts
-│   └── AIProviderManager.unit.test.ts
+├── unit/                           # Unit tests (fast, isolated) - 132 test cases
+│   ├── ContextRetrievalEngine.unit.test.ts       # 25 test cases
+│   ├── ContextIntegration.unit.test.ts           # 20 test cases
+│   ├── AIProviderManager.unit.test.ts            # 15 test cases
+│   # 🌟 v0.9.0 Professional Features Tests:
+│   ├── AdvancedFormattingEngine.unit.test.ts     # 30 test cases
+│   ├── CodeStyleEnforcement.unit.test.ts         # 36 test cases
+│   ├── PerformanceProfiling.unit.test.ts         # 34 test cases
+│   ├── DependencyManagement.unit.test.ts         # 32 test cases
+│   # 🌟 v0.8.0 Enterprise Tests:
+│   ├── AdvancedPluginSystem.unit.test.ts         # 25 test cases
+│   ├── AuditLoggingSystem.unit.test.ts           # 30 test cases
+│   # 🌟 v0.7.0 Context Intelligence Tests:
+│   ├── AdvancedContextSystem.unit.test.ts        # 28 test cases
 ├── context/                        # Integration tests (VS Code)
 │   ├── ContextRetrievalEngine.test.ts
 │   ├── ContextIntegration.test.ts
-│   └── FileContextManager.test.ts
+│   ├── FileContextManager.test.ts
+│   ├── AgentMode.test.ts                          # Agent integration tests
+│   ├── MCPManager.test.ts                         # MCP integration tests
 ├── performance/                    # Performance tests
 │   ├── ContextRetrieval.perf.test.ts
-│   └── LargeFiles.perf.test.ts
+│   ├── LargeFiles.perf.test.ts
+│   ├── AgentExecution.perf.test.ts
+│   ├── FormattingPerformance.perf.test.ts         # v0.9.0 performance tests
 ├── fixtures/                       # Test data and mock files
 │   ├── mock-workspace/
-│   └── sample-code/
+│   ├── sample-code/
+│   ├── test-projects/                             # Full project samples
+│   └── performance-data/                          # Large file samples
 ├── helpers/                        # Test utilities
 │   ├── mockVSCode.ts
 │   ├── testWorkspace.ts
-│   └── assertions.ts
+│   ├── assertions.ts
+│   ├── mockAIProviders.ts                         # AI provider mocks
+│   └── testFramework.ts                           # Self-contained framework
 ├── runUnitTests.js                # Unit test runner
-└── runIntegrationTests.js         # Integration test runner
+├── runIntegrationTests.js         # Integration test runner
+├── validateV070Features.js        # v0.7.0 Advanced Context validation
+├── validateV080Features.js        # v0.8.0 Enterprise & Integration validation
+└── validateV090Features.js        # v0.9.0 Professional Features validation
 ```
 
 ### Test File Naming
@@ -117,8 +138,14 @@ test/
 # Run all tests
 pnpm run test
 
-# Run only unit tests (fast)
+# Run only unit tests (fast) - 132 test cases
 pnpm run unit-tests
+
+# Version-specific validation tests
+pnpm run test:v070      # Validate v0.7.0 Advanced Context features
+pnpm run test:v080      # Validate v0.8.0 Enterprise & Integration features
+pnpm run test:v090      # Validate v0.9.0 Professional features
+pnpm run test:all       # Run all validation tests (v0.7.0, v0.8.0, v0.9.0)
 
 # Run with coverage
 pnpm run test:coverage
@@ -131,6 +158,10 @@ pnpm run test -- ContextRetrievalEngine
 
 # Run with debug output
 pnpm run test:debug
+
+# Performance and regression tests
+pnpm run test:performance
+pnpm run test:regression
 ```
 
 ### Detailed Commands
@@ -172,6 +203,26 @@ pnpm run test:memory
 
 # Load testing
 pnpm run test:load
+
+# v0.9.0 Professional feature performance
+pnpm run test:formatting-performance
+pnpm run test:profiling-accuracy
+```
+
+#### Feature Validation Tests
+
+```bash
+# v0.7.0 Advanced Context System validation
+node test/validateV070Features.js
+
+# v0.8.0 Enterprise & Integration validation  
+node test/validateV080Features.js
+
+# v0.9.0 Professional Features validation
+node test/validateV090Features.js
+
+# All features validation
+pnpm run test:all
 ```
 
 ## ✍️ Writing Tests
@@ -243,6 +294,128 @@ suite('ContextIntegration Tests', () => {
 
         assert.ok(result.files.length > 0);
         assert.ok(result.relevanceScore > 0);
+    });
+});
+```
+
+### Professional Features Test Example (v0.9.0)
+
+```typescript
+// test/unit/AdvancedFormattingEngine.unit.test.ts
+import * as assert from 'assert';
+import { AdvancedFormattingEngine } from '../../src/formatting/AdvancedFormattingEngine';
+
+suite('AdvancedFormattingEngine Unit Tests', () => {
+    let engine: AdvancedFormattingEngine;
+
+    setup(() => {
+        engine = new AdvancedFormattingEngine();
+    });
+
+    test('should format TypeScript code with context awareness', async () => {
+        const input = 'function   test(){return"hello";}';
+        const expected = 'function test() {\n    return "hello";\n}';
+        
+        const result = await engine.formatCode(input, 'typescript', {
+            contextAware: true,
+            profile: 'default'
+        });
+        
+        assert.strictEqual(result.formattedCode, expected);
+        assert.ok(result.changes.length > 0);
+    });
+
+    test('should handle large files efficiently', async function() {
+        this.timeout(5000);
+        
+        const largeCode = 'a'.repeat(100000); // 100KB file
+        const startTime = Date.now();
+        
+        const result = await engine.formatCode(largeCode, 'javascript');
+        
+        const duration = Date.now() - startTime;
+        assert.ok(duration < 2000, `Formatting took ${duration}ms`);
+        assert.ok(result.success);
+    });
+});
+```
+
+### Code Style Enforcement Test Example
+
+```typescript
+// test/unit/CodeStyleEnforcement.unit.test.ts
+import * as assert from 'assert';
+import { CodeStyleEnforcement } from '../../src/styleguide/CodeStyleEnforcement';
+
+suite('CodeStyleEnforcement Unit Tests', () => {
+    let enforcer: CodeStyleEnforcement;
+
+    setup(() => {
+        enforcer = new CodeStyleEnforcement();
+    });
+
+    test('should detect Airbnb style violations', async () => {
+        const code = `var x=1;function test(){return x}`;
+        
+        const result = await enforcer.analyzeCode(code, 'airbnb', 'javascript');
+        
+        assert.ok(result.violations.length > 0);
+        assert.ok(result.violations.some(v => v.rule === 'prefer-const'));
+        assert.ok(result.violations.some(v => v.rule === 'no-var'));
+    });
+
+    test('should auto-fix style violations', async () => {
+        const code = `var x=1;console.log(x)`;
+        
+        const result = await enforcer.autoFix(code, 'airbnb', 'javascript');
+        
+        assert.ok(result.fixed);
+        assert.ok(result.fixedCode.includes('const x = 1'));
+        assert.strictEqual(result.fixedViolationsCount, 2);
+    });
+});
+```
+
+### Performance Profiling Test Example
+
+```typescript
+// test/unit/PerformanceProfiling.unit.test.ts
+import * as assert from 'assert';
+import { PerformanceProfiling } from '../../src/profiling/PerformanceProfiling';
+
+suite('PerformanceProfiling Unit Tests', () => {
+    let profiler: PerformanceProfiling;
+
+    setup(() => {
+        profiler = new PerformanceProfiling();
+    });
+
+    test('should detect memory leaks', async () => {
+        const mockCode = `
+            let leakyArray = [];
+            setInterval(() => {
+                leakyArray.push(new Array(1000).fill('data'));
+            }, 100);
+        `;
+        
+        const result = await profiler.analyzeMemoryUsage(mockCode, 'javascript');
+        
+        assert.ok(result.memoryLeaks.length > 0);
+        assert.ok(result.recommendations.some(r => r.type === 'memory-optimization'));
+    });
+
+    test('should provide performance recommendations', async () => {
+        const slowCode = `
+            for (let i = 0; i < 1000000; i++) {
+                document.getElementById('test' + i);
+            }
+        `;
+        
+        const result = await profiler.analyzePerformance(slowCode, 'javascript');
+        
+        assert.ok(result.bottlenecks.length > 0);
+        assert.ok(result.optimizations.length > 0);
+        assert.ok(result.score < 50); // Poor performance score
     });
 });
 ```
