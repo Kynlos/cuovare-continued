@@ -11,9 +11,12 @@ const mocha = new Mocha({
 // Add our unit test files
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/ContextRetrievalEngine.unit.test.js'));
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/ContextIntegration.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/AdvancedContextFilter.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/CodeSnippetsLibrary.unit.test.js'));
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/FileTreeManipulator.unit.test.js'));
 
 // Run the tests
-console.log('Running Context Retrieval System Unit Tests...\n');
+console.log('Running Cuovare v0.7.0 Complete Unit Test Suite...\n');
 
 mocha.run(failures => {
     if (failures > 0) {

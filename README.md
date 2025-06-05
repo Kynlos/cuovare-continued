@@ -738,7 +738,6 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] **File Tree Manipulation** - Create, move, and organize files with AI assistance and project templates
 
 ### v0.8.0 - Enterprise & Integration
-- [ ] **CI/CD Pipeline Integration** - Connect with GitHub Actions, Jenkins, etc.
 - [ ] **Advanced Plugin System** - Enhanced extensible architecture for custom tools
 - [ ] **Audit Logging** - Comprehensive activity tracking for compliance
 
@@ -756,6 +755,7 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [ ] **Advanced Analytics** - Usage insights and productivity metrics
 
 ### Extended Development - These will be done individually.
+- [ ] **CI/CD Pipeline Integration** - Connect with GitHub Actions, Jenkins, etc.
 - [ ] **Intelligent Auto-completion** - AI-powered code suggestions
 - [ ] **Voice Input/Output** - Talk to your AI coding assistant
 - [ ] **Custom Model Fine-tuning** - Train models on your specific codebase
