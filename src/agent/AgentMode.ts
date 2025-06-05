@@ -146,37 +146,61 @@ export class AgentMode {
         
         const planningPrompt = `${systemPrompt}
 
-User Request: "${userRequest}"
+## USER REQUEST: "${userRequest}"
 
-${contextText ? `Available Context:\n${contextText}\n` : ''}
+${contextText ? `## CONTEXT:\n${contextText}\n` : ''}
 
-ANALYZE THE REQUEST:
-1. What is the user asking me to DO? (not just explain or analyze)
-2. What concrete deliverable do they expect?
-3. What files need to be read, created, or modified?
-4. What commands need to be executed?
+## YOUR TASK:
+Analyze the request and create a JSON execution plan.
 
-CREATE AN EXECUTION PLAN:
-- Each action must use one of these exact tool types: ${availableActionTypes}
-- Each action must have a concrete, executable payload
-- Focus on DOING the work, not just gathering information
-- Include verification steps to ensure completion
+## ANALYSIS QUESTIONS:
+1. What specific deliverable does the user want?
+2. Which files need to be read/created/modified?
+3. What commands need to be executed?
+4. How will I verify success?
 
-Return your response as a JSON object with this structure:
+## RESPONSE FORMAT:
+Return ONLY a JSON object in this exact format:
+
 {
-    "goal": "Brief description of the concrete deliverable we're creating",
+    "goal": "Brief, specific description of what I will deliver",
     "actions": [
         {
-            "type": "one_of_the_available_tool_types",
-            "description": "Concrete action that produces a result",
+            "type": "tool_name",
+            "description": "What this action accomplishes",
             "payload": {
-                "detailed": "parameters for the tool"
+                "operation": "specific_operation",
+                "filePath": "path/to/file",
+                "content": "actual content to write"
             }
         }
     ]
 }
 
-REMEMBER: You are building something, fixing something, or creating something. Not just searching or analyzing.`;
+## AVAILABLE TOOLS: ${availableActionTypes}
+
+## REQUIREMENTS:
+- Each action MUST use a tool from the available list
+- Each action MUST have complete, executable payload parameters
+- Focus on CREATING/BUILDING/FIXING, not just analyzing
+- Include verification steps
+- Be specific with file paths and content
+
+## EXAMPLE FOR "Create a README file":
+{
+    "goal": "Create a comprehensive README.md file for the project",
+    "actions": [
+        {
+            "type": "file_operation",
+            "description": "Create README.md with project documentation",
+            "payload": {
+                "operation": "create",
+                "filePath": "README.md",
+                "content": "# Project Name\\n\\nDescription of the project..."
+            }
+        }
+    ]
+}`;
 
         const response = await this.aiProvider.sendMessage({
             messages: [{ role: 'user', content: planningPrompt }]
@@ -254,10 +278,10 @@ REMEMBER: You are building something, fixing something, or creating something. N
         const result = await toolRegistry.executeAction(action.type, action.payload, context);
         
         if (!result.success) {
-            throw new Error(result.message);
+            throw new Error(result.message || 'Tool execution failed');
         }
         
-        return result.message;
+        return result.message || 'Tool executed successfully';
     }
 
     // Helper methods
@@ -265,46 +289,63 @@ REMEMBER: You are building something, fixing something, or creating something. N
         // Initialize tool registry if not already done
         await toolRegistry.initialize();
         
-        const dynamicTools = toolRegistry.buildToolDescriptionsForLLM();
+        const availableTools = toolRegistry.getToolNames();
+        const toolDescriptions = this.buildConciseToolDescriptions();
         
-        return `You are Cuovare's Full Agent Mode - an autonomous AI assistant that can perform actual work by executing tools.
+        return `You are an AUTONOMOUS AI AGENT that executes tasks using tools.
 
-CRITICAL: You are NOT a search engine or information provider. You are an AGENT that DOES THINGS.
+YOUR MISSION: Transform user requests into executable action plans.
 
-When a user asks you to do something, you must:
-1. Understand the SPECIFIC task they want accomplished
-2. Break it down into concrete, executable steps using available tools
-3. Actually execute those steps to complete the task
+## AVAILABLE TOOLS:
+${toolDescriptions}
 
-${dynamicTools}
+## HOW TO THINK:
+1. WHAT does the user want me to BUILD/CREATE/FIX?
+2. WHICH files do I need to read/write/modify?
+3. WHAT commands need to be executed?
+4. HOW do I verify success?
 
-AGENT BEHAVIOR PRINCIPLES:
-- If user says "document X", you should READ the file and CREATE documentation
-- If user says "create Y", you should CREATE the actual file/code/feature
-- If user says "fix Z", you should IDENTIFY the issue and IMPLEMENT the fix
-- If user says "add feature W", you should WRITE the actual code
+## PLANNING RULES:
+✅ Use "file_operation" to read/write/create/edit files
+✅ Use "terminal" to run commands like tests, builds, npm install
+✅ Use "git_operation" for git commands
+✅ Use "search_analysis" only to FIND files or code patterns
+✅ Create specific, concrete actions with exact parameters
+✅ Always include verification steps
 
-PLANNING RULES:
-1. Always start by understanding what the user ACTUALLY wants done
-2. Use file_operation to READ files when you need to understand existing code
-3. Use search_analysis only when you need to find specific information across the codebase
-4. Use terminal to run tests, builds, or other commands
-5. Use git_operation for version control tasks
-6. ALWAYS include verification steps to ensure your work is complete
-7. Create CONCRETE actions, not vague "analyze" steps
+❌ Never create vague "analyze" or "investigate" actions
+❌ Never use tools just to gather information - always work toward the goal
 
-Example good plan for "document the authentication system":
-1. Read authentication-related files to understand the system
-2. Create comprehensive documentation file
-3. Verify documentation is accurate and complete
+## EXAMPLES:
 
-Example BAD plan for "document the authentication system":
-1. Search for authentication-related information (too vague, doesn't accomplish the task)
+USER: "Create a new React component for user login"
+GOOD PLAN:
+1. file_operation: Create LoginComponent.tsx with React component code
+2. file_operation: Create LoginComponent.test.tsx with tests
+3. terminal: Run "npm test" to verify tests pass
 
-Available Capabilities:
-${Object.entries(this.capabilities).map(([key, enabled]) => `- ${key}: ${enabled ? 'ENABLED' : 'DISABLED'}`).join('\n')}
+USER: "Fix the broken authentication in auth.ts"
+GOOD PLAN:
+1. file_operation: Read auth.ts to understand current implementation
+2. file_operation: Write corrected auth.ts with the fix
+3. terminal: Run tests to verify the fix works
 
-Remember: You are an AGENT that EXECUTES tasks, not a chatbot that provides information.`;
+TOOL LIST: ${availableTools.join(', ')}`;
+    }
+
+    private buildConciseToolDescriptions(): string {
+        const tools = toolRegistry.getAllTools();
+        const descriptions: string[] = [];
+        
+        for (const tool of tools) {
+            const params = tool.metadata.parameters?.slice(0, 3).map(p => 
+                `${p.name}${p.required ? '*' : ''}`
+            ).join(', ') || '';
+            
+            descriptions.push(`• ${tool.metadata.name}: ${tool.metadata.description} (${params})`);
+        }
+        
+        return descriptions.slice(0, 10).join('\n'); // Limit to top 10 tools for clarity
     }
 
     private formatContext(context: any[]): string {
@@ -315,28 +356,112 @@ Remember: You are an AGENT that EXECUTES tasks, not a chatbot that provides info
         try {
             // Extract JSON from response (handle cases where AI adds explanation)
             const jsonMatch = response.match(/\{[\s\S]*\}/);
-            const jsonStr = jsonMatch ? jsonMatch[0] : response;
+            if (!jsonMatch) {
+                throw new Error('No JSON found in AI response');
+            }
+            
+            const jsonStr = jsonMatch[0];
             const parsed = JSON.parse(jsonStr);
+            
+            // Validate the parsed plan
+            if (!parsed.actions || !Array.isArray(parsed.actions)) {
+                throw new Error('Invalid plan: actions must be an array');
+            }
+            
+            if (parsed.actions.length === 0) {
+                throw new Error('Invalid plan: must have at least one action');
+            }
+            
+            const availableTools = toolRegistry.getToolNames();
+            
+            // Validate and normalize each action
+            const validatedActions = parsed.actions.map((action: any, index: number) => {
+                if (!action.type) {
+                    throw new Error(`Action ${index + 1}: missing type`);
+                }
+                
+                if (!action.payload) {
+                    throw new Error(`Action ${index + 1}: missing payload`);
+                }
+                
+                const normalizedType = this.normalizeActionType(action.type);
+                if (!availableTools.includes(normalizedType)) {
+                    throw new Error(`Action ${index + 1}: unknown tool type '${action.type}'`);
+                }
+                
+                return {
+                    type: normalizedType,
+                    description: action.description || `Execute ${normalizedType}`,
+                    payload: action.payload,
+                    status: 'pending' as const,
+                    timestamp: Date.now() + index
+                };
+            });
+            
+            this.outputChannel.appendLine(`✅ Plan validation successful: ${validatedActions.length} actions`);
             
             return {
                 goal: parsed.goal || userRequest,
-                actions: parsed.actions.map((action: any, index: number) => ({
-                    ...action,
-                    type: this.normalizeActionType(action.type),
-                    status: 'pending' as const,
-                    timestamp: Date.now() + index
-                })),
+                actions: validatedActions,
                 currentActionIndex: 0,
                 status: 'planning',
                 startTime: Date.now()
             };
+            
         } catch (error) {
-            // Fallback: create a simple plan
+            this.outputChannel.appendLine(`⚠️ Plan parsing failed: ${error instanceof Error ? error.message : String(error)}`);
+            
+            // Create a smart fallback plan based on request analysis
+            return this.createFallbackPlan(userRequest);
+        }
+    }
+
+    private createFallbackPlan(userRequest: string): AgentPlan {
+        const request = userRequest.toLowerCase();
+        
+        // Analyze request to create a reasonable fallback
+        if (request.includes('create') || request.includes('add') || request.includes('build')) {
             return {
-                goal: userRequest,
+                goal: `Create solution for: ${userRequest}`,
+                actions: [{
+                    type: 'file_operation',
+                    description: `Read existing files to understand context`,
+                    payload: { 
+                        operation: 'read',
+                        filePath: 'package.json'
+                    },
+                    status: 'pending',
+                    timestamp: Date.now()
+                }],
+                currentActionIndex: 0,
+                status: 'planning',
+                startTime: Date.now()
+            };
+        } else if (request.includes('fix') || request.includes('debug') || request.includes('error')) {
+            return {
+                goal: `Fix issue: ${userRequest}`,
                 actions: [{
                     type: 'search_analysis',
-                    description: 'Analyze the request and determine next steps',
+                    description: 'Search for relevant code to understand the issue',
+                    payload: { 
+                        query: userRequest,
+                        type: 'semantic',
+                        scope: 'workspace',
+                        maxResults: 5
+                    },
+                    status: 'pending',
+                    timestamp: Date.now()
+                }],
+                currentActionIndex: 0,
+                status: 'planning',
+                startTime: Date.now()
+            };
+        } else {
+            return {
+                goal: `Analyze and respond to: ${userRequest}`,
+                actions: [{
+                    type: 'search_analysis',
+                    description: 'Search codebase to understand the request',
                     payload: { 
                         query: userRequest,
                         type: 'semantic',

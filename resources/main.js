@@ -742,7 +742,39 @@
             case 'workspaceFiles':
                 workspaceFiles = message.data;
                 break;
+            case 'updateDynamicTools':
+                updateToolsList(message.data);
+                break;
         }
+    }
+
+    function updateToolsList(data) {
+        const container = document.getElementById('availableToolsContainer');
+        if (!container) return;
+
+        const { tools, totalCount } = data;
+        
+        // Update the label with the actual count
+        const label = container.parentElement.querySelector('label');
+        if (label) {
+            label.textContent = `Available Tools (${totalCount} total)`;
+        }
+
+        // Generate new tools HTML
+        const toolsHTML = tools.map(tool => `
+            <label class="flex items-center gap-2 text-xs">
+                <input type="checkbox" id="tool-${tool.id}" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                <span class="text-slate-300">${tool.name}</span>
+            </label>
+        `).join('');
+
+        // Update the container content
+        const gridContainer = container.querySelector('.grid');
+        if (gridContainer) {
+            gridContainer.innerHTML = toolsHTML;
+        }
+
+        console.log(`✅ Updated tools list: ${totalCount} tools loaded`);
     }
 
     function updateChatHistory(history) {

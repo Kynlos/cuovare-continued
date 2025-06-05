@@ -51,46 +51,141 @@ export class ToolRegistry {
         try {
             const files = fs.readdirSync(executorsPath);
             
-            // Only look for .js files since we're running compiled code
-            const executorFiles = files.filter(file => file.endsWith('.js'));
+            // Look for both .ts and .js files for better development experience
+            const executorFiles = files.filter(file => 
+                file.endsWith('.js') || file.endsWith('.ts')
+            );
+
+            let loadedCount = 0;
+            let errorCount = 0;
+            let vscodeMissingCount = 0;
 
             for (const file of executorFiles) {
                 try {
                     const modulePath = path.join(executorsPath, file);
                     
-                    // Try require first for CommonJS compatibility, fallback to import
+                    // Skip .d.ts files
+                    if (file.endsWith('.d.ts')) {
+                        continue;
+                    }
+                    
                     let module: any;
                     try {
-                        // Use require for better compatibility in Node.js
-                        delete require.cache[require.resolve(modulePath)];
-                        module = require(modulePath);
-                    } catch (requireError) {
-                        // Convert to file:// URL for Windows compatibility
-                        const moduleUrl = `file:///${modulePath.replace(/\\/g, '/')}`;
-                        module = await import(moduleUrl);
+                        // For .ts files in development, try direct import
+                        if (file.endsWith('.ts')) {
+                            // Convert to file:// URL for cross-platform compatibility
+                            const moduleUrl = `file:///${modulePath.replace(/\\/g, '/')}`;
+                            module = await import(moduleUrl);
+                        } else {
+                            // For .js files, use require with cache clearing
+                            delete require.cache[require.resolve(modulePath)];
+                            module = require(modulePath);
+                        }
+                    } catch (importError) {
+                        // Check if this is a vscode dependency issue
+                        if (importError.message.includes('Cannot find module \'vscode\'')) {
+                            vscodeMissingCount++;
+                            // Skip vscode-dependent tools when not in VS Code environment
+                            continue;
+                        }
+                        
+                        // Fallback: try require for all file types
+                        try {
+                            delete require.cache[require.resolve(modulePath)];
+                            module = require(modulePath);
+                        } catch (requireError) {
+                            if (requireError.message.includes('Cannot find module \'vscode\'')) {
+                                vscodeMissingCount++;
+                                continue;
+                            }
+                            throw new Error(`Failed to load ${file}: ${importError.message} and ${requireError.message}`);
+                        }
                     }
                     
                     // Look for default export with metadata
-                    if (module.default && module.default.metadata && module.default.execute) {
+                    if (module.default && this.isValidToolExecutor(module.default)) {
                         const executor = module.default as ToolExecutor;
                         this.tools.set(executor.metadata.name, executor);
+                        loadedCount++;
                     }
                     
                     // Look for named exports with metadata
                     for (const [key, value] of Object.entries(module)) {
-                        if (key !== 'default' && value && typeof value === 'object' && 
-                            (value as any).metadata && (value as any).execute) {
+                        if (key !== 'default' && this.isValidToolExecutor(value)) {
                             const executor = value as ToolExecutor;
                             this.tools.set(executor.metadata.name, executor);
+                            loadedCount++;
                         }
                     }
                 } catch (error) {
-                    // Silently skip tools that fail to load (e.g., missing dependencies)
+                    errorCount++;
+                    console.warn(`[ToolRegistry] Failed to load tool from ${file}:`, error);
                 }
             }
+            
+            let statusMessage = `[ToolRegistry] Loaded ${loadedCount} tools successfully`;
+            if (errorCount > 0) {
+                statusMessage += ` (${errorCount} failed)`;
+            }
+            if (vscodeMissingCount > 0) {
+                statusMessage += ` (${vscodeMissingCount} skipped - vscode not available)`;
+            }
+            console.log(statusMessage);
+            
+            // Ensure we have at least basic tools
+            if (this.tools.size === 0) {
+                this.loadFallbackTools();
+            }
         } catch (error) {
-            console.warn('[ToolRegistry] Failed to discover tools:', error);
+            console.error('[ToolRegistry] Failed to discover tools:', error);
+            this.loadFallbackTools();
         }
+    }
+
+    private isValidToolExecutor(obj: any): boolean {
+        return obj && 
+               typeof obj === 'object' && 
+               obj.metadata && 
+               typeof obj.metadata.name === 'string' &&
+               typeof obj.metadata.description === 'string' &&
+               typeof obj.metadata.category === 'string' &&
+               typeof obj.execute === 'function';
+    }
+
+    private loadFallbackTools(): void {
+        // Basic fallback tools to ensure agent mode can function
+        const basicFileOp = {
+            metadata: {
+                name: 'file_operation',
+                description: 'Basic file operations: read, write, create files',
+                category: 'File Operations',
+                parameters: [
+                    { name: 'operation', description: 'read, write, create', required: true, type: 'string' },
+                    { name: 'filePath', description: 'Path to file', required: true, type: 'string' },
+                    { name: 'content', description: 'Content for write/create', required: false, type: 'string' }
+                ]
+            },
+            execute: async (payload: any, context: any) => {
+                try {
+                    const filePath = path.resolve(context.workspaceRoot, payload.filePath);
+                    
+                    if (payload.operation === 'read') {
+                        const content = fs.readFileSync(filePath, 'utf8');
+                        return { success: true, message: `Read ${payload.filePath}`, data: content };
+                    } else if (payload.operation === 'write' || payload.operation === 'create') {
+                        fs.writeFileSync(filePath, payload.content || '');
+                        return { success: true, message: `${payload.operation === 'create' ? 'Created' : 'Wrote'} ${payload.filePath}` };
+                    }
+                    
+                    return { success: false, message: 'Unknown operation' };
+                } catch (error) {
+                    return { success: false, message: `Error: ${error instanceof Error ? error.message : String(error)}` };
+                }
+            }
+        };
+        
+        this.tools.set('file_operation', basicFileOp as ToolExecutor);
+        console.log('[ToolRegistry] Loaded fallback tools');
     }
 
     getAllTools(): ToolExecutor[] {

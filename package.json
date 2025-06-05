@@ -2,7 +2,7 @@
   "name": "cuovare",
   "displayName": "Cuovare - Advanced AI Coding Assistant",
   "description": "The most beautiful and advanced AI coding assistant with multi-provider support, MCP integration, and intelligent codebase understanding",
-  "version": "0.5.0",
+  "version": "0.9.1",
   "publisher": "cuovare",
   "icon": "resources/icon.png",
   "engines": {
@@ -573,7 +573,8 @@
     "test:v070": "node test/validateV070Features.js",
     "test:v080": "node test/validateV080Features.js",
     "test:v090": "node test/validateV090Features.js",
-    "test:all": "pnpm run unit-tests && pnpm run test:v070 && pnpm run test:v080 && pnpm run test:v090",
+    "test:agent": "node test/validateAgentMode.js",
+    "test:all": "pnpm run unit-tests && pnpm run test:v070 && pnpm run test:v080 && pnpm run test:v090 && pnpm run test:agent",
     "test:watch": "nodemon --exec 'pnpm run unit-tests' --watch src --watch test --ext ts",
     "test:coverage": "nyc pnpm run unit-tests",
     "clean": "rimraf out coverage .vscode-test",

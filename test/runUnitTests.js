@@ -21,6 +21,9 @@ mocha.addFile(path.resolve(__dirname, '../out/test/unit/CodeStyleEnforcement.uni
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/PerformanceProfiling.unit.test.js'));
 mocha.addFile(path.resolve(__dirname, '../out/test/unit/DependencyManagement.unit.test.js'));
 
+// Agent Mode Core Tests (Flagship Feature)
+mocha.addFile(path.resolve(__dirname, '../out/test/unit/AgentMode.unit.test.js'));
+
 // Run the tests
 console.log('Running Cuovare Complete Unit Test Suite (v0.7.0 + v0.8.0 + v0.9.0)...\n');
 

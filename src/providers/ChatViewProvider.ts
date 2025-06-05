@@ -8,6 +8,7 @@ import { ContextRetrievalEngine, RetrievalContext, QueryIntent } from '../contex
 import { MCPManager } from '../mcp/MCPManager';
 import { ToolExecutionEngine, ToolExecutionRequest, ToolExecutionResult } from '../mcp/ToolExecutionEngine';
 import { AgentMode } from '../agent/AgentMode';
+import { toolRegistry } from '../agent/ToolRegistry';
 import { marked } from 'marked';
 
 export interface ChatMessage {
@@ -84,6 +85,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         };
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+        // Update tools list with dynamic data after webview loads
+        setTimeout(async () => {
+            await this.updateDynamicTools();
+        }, 100);
 
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
@@ -1825,6 +1831,83 @@ Return only the commit message, nothing else.`;
             vscode.window.showInformationMessage(`Successfully committed: "${message}"`);
         } catch (error) {
             throw new Error(`Failed to commit: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Generate dynamic tools HTML from actual ToolRegistry
+     */
+    private async generateDynamicToolsHTML(): Promise<string> {
+        await toolRegistry.initialize();
+        const tools = toolRegistry.getAllTools();
+        const toolCount = tools.length;
+        
+        const toolsHTML = tools.map(tool => {
+            const toolId = tool.metadata.name.replace(/[^a-zA-Z0-9]/g, '');
+            const toolName = tool.metadata.name.replace(/_/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+            
+            return `
+                <label class="flex items-center gap-2 text-xs">
+                    <input type="checkbox" id="tool-${toolId}" checked class="rounded border-slate-600 bg-slate-800 text-blue-500">
+                    <span class="text-slate-300">${toolName}</span>
+                </label>`;
+        }).join('');
+        
+        return `
+            <label class="block text-xs font-medium text-slate-300">Available Tools (${toolCount} total)</label>
+            <div id="availableToolsContainer" class="space-y-1 max-h-32 overflow-y-auto border border-slate-700/50 rounded p-2 bg-slate-800/20">
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1">
+                    ${toolsHTML}
+                </div>
+            </div>`;
+    }
+
+    /**
+     * Update the tools list in the webview with dynamic data
+     */
+    private async updateDynamicTools(): Promise<void> {
+        if (!this._view) return;
+        
+        try {
+            await toolRegistry.initialize();
+            const tools = toolRegistry.getAllTools();
+            const toolsByCategory = new Map<string, typeof tools>();
+            
+            // Group tools by category
+            tools.forEach(tool => {
+                const category = tool.metadata.category;
+                if (!toolsByCategory.has(category)) {
+                    toolsByCategory.set(category, []);
+                }
+                toolsByCategory.get(category)!.push(tool);
+            });
+            
+            // Create tools data for webview
+            const toolsData = tools.map(tool => ({
+                id: tool.metadata.name.replace(/[^a-zA-Z0-9]/g, ''),
+                name: tool.metadata.name.replace(/_/g, ' ')
+                    .split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' '),
+                category: tool.metadata.category,
+                description: tool.metadata.description,
+                enabled: true
+            }));
+            
+            // Send tools data to webview
+            this._view.webview.postMessage({
+                type: 'updateDynamicTools',
+                data: {
+                    tools: toolsData,
+                    totalCount: tools.length,
+                    categories: Array.from(toolsByCategory.keys())
+                }
+            });
+        } catch (error) {
+            console.error('Failed to update dynamic tools:', error);
         }
     }
 
