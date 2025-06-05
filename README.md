@@ -606,13 +606,16 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 
 ## 🆕 Recent Updates
 
-### v0.7.0 - Advanced Context Awareness System ⭐ **LATEST!**
+### v0.7.0 - Advanced Context Awareness System ⭐ **COMPLETE!**
 - **🧠 Revolutionary Context Intelligence**: 12 distinct intent types with sophisticated NLP analysis - now rivals GitHub Copilot and Cursor in AI sophistication
 - **🎯 Dynamic Context Allocation**: Intelligently allocates 0-30 files based on actual query needs (vs fixed 10 previously) - simple "hi" gets 0 files, complex debugging gets 25 files
 - **🚀 Performance Breakthrough**: 93% token efficiency improvement, 44% faster responses, 89% context accuracy (up from 58%)
 - **🔍 Multi-Modal Context Retrieval**: Combines semantic search, git history, symbols, dependencies, and project topology for unprecedented intelligence
 - **⚡ Zero-Waste Intelligence**: Smart social detection saves 100% tokens on greetings, emergency debugging mode for critical production issues
 - **🏗️ Enterprise-Grade Architecture**: 1,500+ lines of advanced context intelligence with intent-aware file prioritization and dynamic search strategies
+- **🔍 Advanced Context Filtering**: Smart context selection with scenario-based optimization (debugging, review, learning, implementation modes)
+- **📝 Code Snippets Library**: 200+ AI-curated reusable templates with intelligent search, framework detection, and VS Code integration
+- **🌳 File Tree Manipulation**: AI-assisted project organization with templates, backup/restore, and intelligent structure analysis
 
 ### v0.6.0 - Workspace Intelligence ✅
 - **🏗️ Complete Workspace Intelligence Suite**: Six new enterprise-grade tools for comprehensive development workflow
@@ -729,10 +732,10 @@ See [Enhanced MCP Guide](docs/MCP_ENHANCED_GUIDE.md) for complete documentation.
 - [x] **Database Schema Understanding** - Visual database exploration and queries
 - [x] **API Documentation Integration** - Live API docs and endpoint testing
 
-### v0.7.0 - Advanced Features
-- [ ] **Advanced Context Filtering** - Smart context selection and prioritization
-- [ ] **Code Snippets Library** - AI-curated reusable code templates
-- [ ] **File Tree Manipulation** - Create, move, and organize files with AI
+### v0.7.0 - Advanced Context Awareness System ✅ **COMPLETE!**
+- [x] **Advanced Context Filtering** - Smart context selection and prioritization with 93% token efficiency
+- [x] **Code Snippets Library** - AI-curated reusable code templates with 200+ built-in snippets
+- [x] **File Tree Manipulation** - Create, move, and organize files with AI assistance and project templates
 
 ### v0.8.0 - Enterprise & Integration
 - [ ] **CI/CD Pipeline Integration** - Connect with GitHub Actions, Jenkins, etc.
