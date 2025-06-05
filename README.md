@@ -1,7 +1,7 @@
 # 🚀 Cuovare - Professional AI Development Platform
 
 > **The Most Advanced AI Coding Assistant for VS Code**  
-> Enterprise-grade autonomous development with 29 professional tools, universal AI provider support, and revolutionary context intelligence.
+> Enterprise-grade autonomous development with 16 working professional tools, universal AI provider support, and revolutionary context intelligence.
 
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=cuovare.cuovare)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-blue?logo=typescript)](https://www.typescriptlang.org/)
@@ -16,7 +16,7 @@
 - **🤖 True AI Agent** - Executes complex development tasks autonomously, not just chat
 - **🏢 Enterprise Ready** - Professional features with compliance, security, and performance tools
 - **🧠 Intelligent Context** - 93% token efficiency with intent-aware file selection (0-30 files dynamically)
-- **🔧 29 Professional Tools** - Complete developer toolkit from formatting to deployment automation
+- **🔧 16 Working Professional Tools** - Reliable developer toolkit from formatting to deployment automation
 - **⚡ Universal AI Support** - Works with OpenAI, Anthropic, Groq, Grok, Google AI, Ollama, and custom endpoints
 - **🛡️ Security First** - Enterprise-grade security with local processing and encrypted storage
 
@@ -155,9 +155,6 @@ Result: 🎉 Task Completed Successfully!
         • Created comprehensive documentation
         Files created: `auth-documentation.md`
 ```
-        • Generated component with TypeScript and tests
-        Files created: `UserProfile.tsx`, `UserProfile.test.tsx`, `index.ts`
-```
 
 **Advanced File Editing**
 ```
@@ -183,84 +180,78 @@ Result: 🎉 Task Completed Successfully!
 
 ## 🏗️ Project Structure
 
-```
-cuovare/
-├── src/
-│   ├── extension.ts              # Main extension entry point
-│   ├── providers/
-│   │   ├── AIProviderManager.ts  # Multi-provider AI integration
-│   │   └── ChatViewProvider.ts   # Webview UI and chat logic
-│   ├── agent/
-│   │   ├── AgentMode.ts          # Full Agent Mode orchestration
-│   │   ├── ToolRegistry.ts       # Dynamic tool discovery and management
-│   │   └── executors/            # Modular tool implementations (29 enterprise tools)
-│   │       ├── FileOperationTool.ts     # Enhanced file operations (read, write, create, delete, edit)
-│   │       ├── MultiFileEditingTool.ts  # Multi-file editing with AI coordination
-│   │       ├── TerminalTool.ts          # Safe terminal command execution
-│   │       ├── SearchTool.ts            # Code search and analysis
-│   │       ├── GitTool.ts               # Git operations and automation
-│   │       ├── TestingTool.ts           # Comprehensive testing framework
-│   │       ├── DebuggingTool.ts         # Debugging, profiling, error analysis
-│   │       ├── DatabaseTool.ts          # Database schema, migrations, ORM generation
-│   │       ├── APITool.ts               # API testing, OpenAPI specs, client generation
-│   │       ├── SecurityTool.ts          # Security scans, vulnerability detection
-│   │       ├── SecurityVulnerabilityTool.ts # OWASP security scanning
-│   │       ├── PerformanceTool.ts       # Performance analysis, optimization
-│   │       ├── PerformanceOptimizationTool.ts # Bottleneck identification
-│   │       ├── DeploymentTool.ts        # Docker, K8s, CI/CD, infrastructure
-│   │       ├── PackageManagerTool.ts    # Dependency management, licensing
-│   │       ├── WebScrapingTool.ts       # Intelligent web content extraction
-│   │       ├── AdvancedCodeReviewTool.ts # AI-powered code analysis
-│   │       ├── AutoTestGenerationTool.ts # Automated test generation
-│   │       ├── CodeRefactoringTool.ts   # Intelligent code restructuring
-│   │       ├── RealTimeErrorDetectionTool.ts # Live error detection
-│   │       ├── CodeQualityMetricsTool.ts # Complexity analysis
-│   │       ├── SmartImportManagementTool.ts # Import optimization
-│   │       # 🌟 v0.6.0 Workspace Intelligence Tools:
-│   │       ├── DocumentationTool.ts     # Auto-generate comprehensive docs
-│   │       ├── WorkspaceSearchTool.ts   # AI-powered workspace-wide search
-│   │       ├── CodeNavigationTool.ts    # Smart code navigation assistant
-│   │       ├── ProjectScaffoldingTool.ts # Generate projects with best practices
-│   │       ├── DatabaseSchemaTool.ts    # Visual database exploration
-│   │       └── APIDocumentationTool.ts  # Live API docs and OpenAPI specs
-│   ├── context/
-│   │   ├── ContextRetrievalEngine.ts  # Advanced semantic search engine
-│   │   ├── ContextIntegration.ts      # Integration layer for chat
-│   │   └── FileContextManager.ts      # Basic file context management
-│   ├── mcp/
-│   │   └── MCPManager.ts         # Model Context Protocol integration
-│   # 🌟 v0.8.0 Enterprise & Integration:
-│   ├── plugins/
-│   │   └── AdvancedPluginSystem.ts  # Dynamic plugin discovery & marketplace integration
-│   ├── audit/
-│   │   └── AuditLoggingSystem.ts     # Enterprise compliance tracking (GDPR/SOX/HIPAA)
-│   # 🌟 v0.9.0 Professional Features:
-│   ├── formatting/
-│   │   └── AdvancedFormattingEngine.ts  # Context-aware code formatting with multi-language support
-│   ├── styleguide/
-│   │   └── CodeStyleEnforcement.ts     # Automated style guide compliance (Airbnb, Google, PEP 8)
-│   ├── profiling/
-│   │   └── PerformanceProfiling.ts     # Real-time performance analysis & optimization recommendations
-│   └── dependencies/
-│       └── DependencyManagement.ts    # Smart package updates & vulnerability scanning
-├── resources/
-│   ├── styles.css                # Modern UI styles with Tailwind
-│   ├── main.js                   # Frontend JavaScript logic
-│   └── icon.png                  # Extension icon
-├── test/
-│   ├── unit/                     # Unit tests (fast, isolated)
-│   ├── context/                  # Integration tests (VS Code environment)
-│   └── runUnitTests.js          # Custom test runner
-├── docs/
-│   ├── WORKSPACE_INTELLIGENCE.md # Complete v0.6.0 feature documentation
-│   ├── CHANGELOG.md             # Version history and release notes
-│   ├── AGENT_MODE.md            # Complete Agent Mode documentation
-│   ├── MODULAR_TOOL_SYSTEM.md  # Tool system architecture guide
-│   ├── DEVELOPMENT.md           # Development setup and workflow
-│   ├── TESTING.md              # Testing strategy and guides
-│   └── CONTRIBUTING.md         # Contributor guidelines
-└── package.json                # Extension manifest and dependencies
-```
+### Core Extension
+- **`src/extension.ts`** - Main extension entry point and VS Code lifecycle management
+- **`src/providers/`** - Core providers for AI and UI functionality
+  - **`AIProviderManager.ts`** - Multi-provider AI integration (OpenAI, Anthropic, Groq, etc.)
+  - **`ChatViewProvider.ts`** - Webview UI and chat logic with modern interface
+
+### Agent System (16 Working Tools)
+- **`src/agent/`** - Revolutionary autonomous AI development system
+  - **`AgentMode.ts`** - Full Agent Mode orchestration with 90% enhanced planning
+  - **`ToolRegistry.ts`** - Dynamic tool discovery and management with graceful fallbacks
+  - **`executors/`** - Modular tool implementations (16 enterprise-grade tools)
+
+### Enterprise Tools Available
+#### Core Development
+- **`FileOperationTool.ts`** - Enhanced file operations (read, write, create, delete, edit)
+- **`MultiFileEditingTool.ts`** - Multi-file editing with AI coordination
+- **`TerminalTool.ts`** - Safe terminal command execution
+- **`SearchTool.ts`** - Code search and analysis
+- **`GitTool.ts`** - Git operations and automation
+
+#### Testing & Quality
+- **`TestingTool.ts`** - Comprehensive testing framework
+- **`DebuggingTool.ts`** - Debugging, profiling, error analysis
+- **`AdvancedCodeReviewTool.ts`** - AI-powered code analysis
+- **`AutoTestGenerationTool.ts`** - Automated test generation
+- **`CodeRefactoringTool.ts`** - Intelligent code restructuring
+- **`RealTimeErrorDetectionTool.ts`** - Live error detection
+- **`CodeQualityMetricsTool.ts`** - Complexity analysis
+
+#### Infrastructure & Security
+- **`SecurityTool.ts`** - Security scans and vulnerability detection
+- **`PerformanceTool.ts`** - Performance analysis and optimization
+- **`DeploymentTool.ts`** - Docker, K8s, CI/CD, infrastructure automation
+- **`PackageManagerTool.ts`** - Dependency management and licensing
+
+### Context Intelligence System
+- **`src/context/`** - Advanced semantic search and context understanding
+  - **`ContextRetrievalEngine.ts`** - 93% token efficiency with intent-aware selection
+  - **`ContextIntegration.ts`** - Integration layer for chat system
+  - **`FileContextManager.ts`** - Basic file context management
+
+### Professional Features (v0.9.0)
+- **`src/formatting/`** - **`AdvancedFormattingEngine.ts`** - Context-aware code formatting
+- **`src/styleguide/`** - **`CodeStyleEnforcement.ts`** - Automated style guide compliance
+- **`src/profiling/`** - **`PerformanceProfiling.ts`** - Real-time performance analysis
+- **`src/dependencies/`** - **`DependencyManagement.ts`** - Smart package management
+
+### Enterprise Features (v0.8.0)
+- **`src/plugins/`** - **`AdvancedPluginSystem.ts`** - Dynamic plugin discovery
+- **`src/audit/`** - **`AuditLoggingSystem.ts`** - Enterprise compliance tracking
+
+### MCP Integration
+- **`src/mcp/`** - **`MCPManager.ts`** - Model Context Protocol for external tools
+
+### Resources & UI
+- **`resources/`** - Modern UI assets
+  - **`styles.css`** - Tailwind-based modern styling
+  - **`main.js`** - Frontend JavaScript logic
+  - **`icon.png`** - Extension icon
+
+### Testing Infrastructure
+- **`test/`** - Comprehensive testing framework
+  - **`unit/`** - Fast, isolated unit tests (132 test cases)
+  - **`context/`** - VS Code integration tests
+  - **`runUnitTests.js`** - Custom test runner
+
+### Documentation
+- **`docs/`** - Complete feature documentation
+  - **`WORKSPACE_INTELLIGENCE.md`** - v0.6.0 workspace tools guide
+  - **`CHANGELOG.md`** - Version history and release notes
+  - **`AGENT_MODE.md`** - Complete Agent Mode documentation
+  - **`DEVELOPMENT.md`** - Development setup and workflow
 
 ### 🏛️ Architecture Overview
 
@@ -276,88 +267,59 @@ graph TB
             PROV --> CHAT[ChatViewProvider.ts<br/>Webview UI & Chat]
         end
         
-        subgraph "🤖 Agent System"
+        subgraph "🤖 Agent System - 16 Working Tools"
             direction TB
             AGENT[AgentMode.ts<br/>Orchestration]
             REGISTRY[ToolRegistry.ts<br/>Dynamic Discovery]
             AGENT --> REGISTRY
             
-            subgraph "🛠️ Tool Categories"
+            subgraph "🛠️ Tool Categories (16 Working)"
                 direction LR
                 
                 subgraph "📁 File Operations"
-                    F1[FileOperationTool]
-                    F2[MultiFileEditingTool]
+                    F1[FileOperationTool ✅]
+                    F2[MultiFileEditingTool ✅]
                 end
                 
-                subgraph "🔍 Search & Navigation"
-                    S1[SearchTool]
-                    S2[WorkspaceSearchTool ⭐]
-                    S3[CodeNavigationTool ⭐]
-                end
-                
-                subgraph "📚 Documentation"
-                    D1[DocumentationTool ⭐]
-                    D2[APIDocumentationTool ⭐]
-                end
-                
-                subgraph "🗄️ Database & API"
-                    DB1[DatabaseTool]
-                    DB2[DatabaseSchemaTool ⭐]
-                    API1[APITool]
+                subgraph "🔍 Search & Operations"
+                    S1[SearchTool ✅]
+                    OP3[TerminalTool ✅]
+                    OP4[GitTool ✅]
                 end
                 
                 subgraph "🛡️ Security & Quality"
-                    SEC1[SecurityTool]
-                    SEC2[SecurityVulnerabilityTool]
-                    Q1[CodeQualityMetricsTool]
-                    Q2[AdvancedCodeReviewTool]
+                    SEC1[SecurityTool ✅]
+                    Q1[CodeQualityMetricsTool ✅]
+                    Q2[AdvancedCodeReviewTool ✅]
                 end
                 
-                subgraph "⚡ Performance"
-                    P1[PerformanceTool]
-                    P2[PerformanceOptimizationTool]
+                subgraph "⚡ Performance & Testing"
+                    P1[PerformanceTool ✅]
+                    DEV2[DebuggingTool ✅]
+                    DEV3[TestingTool ✅]
                 end
                 
-                subgraph "🏗️ Development"
-                    DEV1[ProjectScaffoldingTool ⭐]
-                    DEV2[DebuggingTool]
-                    DEV3[TestingTool]
-                    DEV4[AutoTestGenerationTool]
-                    DEV5[CodeRefactoringTool]
-                    DEV6[RealTimeErrorDetectionTool]
+                subgraph "🏗️ Development Tools"
+                    DEV4[AutoTestGenerationTool ✅]
+                    DEV5[CodeRefactoringTool ✅]
+                    DEV6[RealTimeErrorDetectionTool ✅]
                 end
                 
-                subgraph "🚀 Deployment & Operations"
-                    OP1[DeploymentTool]
-                    OP2[PackageManagerTool]
-                    OP3[TerminalTool]
-                    OP4[GitTool]
-                end
-                
-                subgraph "🌐 Integration"
-                    INT1[WebScrapingTool]
-                    INT2[SmartImportManagementTool]
+                subgraph "🚀 Operations"
+                    OP1[DeploymentTool ✅]
+                    OP2[PackageManagerTool ✅]
                 end
             end
             
             REGISTRY --> F1
             REGISTRY --> F2
             REGISTRY --> S1
-            REGISTRY --> S2
-            REGISTRY --> S3
-            REGISTRY --> D1
-            REGISTRY --> D2
-            REGISTRY --> DB1
-            REGISTRY --> DB2
-            REGISTRY --> API1
+            REGISTRY --> OP3
+            REGISTRY --> OP4
             REGISTRY --> SEC1
-            REGISTRY --> SEC2
             REGISTRY --> Q1
             REGISTRY --> Q2
             REGISTRY --> P1
-            REGISTRY --> P2
-            REGISTRY --> DEV1
             REGISTRY --> DEV2
             REGISTRY --> DEV3
             REGISTRY --> DEV4
@@ -365,10 +327,6 @@ graph TB
             REGISTRY --> DEV6
             REGISTRY --> OP1
             REGISTRY --> OP2
-            REGISTRY --> OP3
-            REGISTRY --> OP4
-            REGISTRY --> INT1
-            REGISTRY --> INT2
         end
         
         subgraph "🧠 Context System"
@@ -423,13 +381,13 @@ graph TB
     EXT --> PERF
     EXT --> DEPS
     
-    classDef newFeature fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef workingTools fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px
     classDef enterpriseFeature fill:#fff3e0,stroke:#e65100,stroke-width:3px
     classDef professionalFeature fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px
     classDef coreSystem fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
     classDef documentation fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
     
-    class S2,S3,D1,D2,DB2,DEV1,DOC1 newFeature
+    class F1,F2,S1,OP3,OP4,SEC1,Q1,Q2,P1,DEV2,DEV3,DEV4,DEV5,DEV6,OP1,OP2 workingTools
     class PLUGIN,AUDIT,DOC2 enterpriseFeature
     class FORMAT,STYLE,PERF,DEPS professionalFeature
     class EXT,AGENT,REGISTRY,CTX coreSystem
@@ -437,7 +395,7 @@ graph TB
 ```
 
 **Legend:**
-- ⭐ **v0.6.0 Workspace Intelligence** - AI-powered workspace tools
+- ✅ **Working Tools** - 16 reliable enterprise tools currently functional
 - ⭐ **v0.8.0 Enterprise & Integration** - Plugin system & compliance tracking
 - ⭐ **v0.9.0 Professional Features** - Advanced formatting, style, performance & dependencies
 - 🎯 **Core Extension** - VS Code integration and UI
@@ -628,7 +586,7 @@ Cuovare represents the cutting edge of AI-assisted development with comprehensiv
   - Flexible reporting and alerting system
 
 #### 🤖 Full Agent Mode - Autonomous AI Development
-- **🚀 Revolutionary Modular Tool System** - 29 enterprise-grade tools with dynamic discovery
+- **🚀 Revolutionary Modular Tool System** - 16 working enterprise-grade tools with dynamic discovery
 - **🎯 True Autonomous Agent** - Executes tasks instead of just providing analysis
 - **🧠 Multi-Step Planning** - AI breaks down complex tasks into executable actions
 - **🔧 Plug-and-Play Architecture** - Add new capabilities by creating tool files
@@ -637,7 +595,7 @@ Cuovare represents the cutting edge of AI-assisted development with comprehensiv
 - **🌍 Internet Access** - Intelligent web scraping with domain whitelisting
 - **📈 Real-time Progress Tracking** - Visual feedback with error recovery
 
-#### 🛠️ Comprehensive Developer Toolkit (29 Enterprise Tools)
+#### 🛠️ Comprehensive Developer Toolkit (16 Working Enterprise Tools)
 
 **Core Development Tools:**
 - **🗄️ Enhanced Database Suite** - Schema generation, migrations, ORM models, query optimization, API generation
