@@ -126,6 +126,46 @@
         vscode.postMessage({ type: 'getWorkspaceFiles' });
     }
 
+    function makePathRelative(absolutePath) {
+        // Common project root patterns to look for
+        const projectIndicators = ['src', 'lib', 'app', 'components', 'pages', 'utils', 'assets', 'styles', 'tests', 'test', '__tests__', 'spec', 'specs'];
+        
+        // Convert backslashes to forward slashes for consistent handling
+        const normalizedPath = absolutePath.replace(/\\/g, '/');
+        
+        // Try to find a reasonable project root by looking for common patterns
+        const segments = normalizedPath.split('/');
+        
+        // Look for common project folder names or source directories
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const segment = segments[i];
+            
+            // If we find a typical project name or source directory, start from there
+            if (projectIndicators.includes(segment) || 
+                segment.includes('project') || 
+                segment.includes('workspace') ||
+                segment.includes('repo') ||
+                segment.includes('code')) {
+                
+                // Return path starting from this directory
+                return segments.slice(i).join('/');
+            }
+        }
+        
+        // If no project indicator found, try to extract the last few meaningful segments
+        // Look for file extension to identify the file, then include a reasonable number of parent dirs
+        const fileIndex = segments.findIndex(segment => segment.includes('.'));
+        if (fileIndex > 0) {
+            // Include up to 3 parent directories before the file
+            const startIndex = Math.max(0, fileIndex - 3);
+            return segments.slice(startIndex).join('/');
+        }
+        
+        // Fallback: return the last 3 segments if no better option found
+        const lastSegments = segments.slice(-3);
+        return lastSegments.join('/');
+    }
+
     function handleFileReferencing(e) {
         const input = e.target.value;
         const cursorPos = e.target.selectionStart;
@@ -750,6 +790,8 @@
         if (chatHistory.length === 0) {
             const welcomeMessage = createWelcomeMessage();
             chatMessages.appendChild(welcomeMessage);
+            // Update provider info after welcome message is added to DOM
+            setTimeout(() => updateProviderInfo(), 10);
         } else {
             chatHistory.forEach(message => {
                 const messageElement = createMessageElement(message);
@@ -894,8 +936,9 @@
         
         if (message.metadata?.files?.length > 0) {
             const fileCount = message.metadata.files.length;
+            const relativeExplicitFiles = message.metadata.files.map(path => makePathRelative(path));
             metadataHTML += `
-                <div class="flex items-center gap-1" title="Explicit files: ${message.metadata.files.join(', ')}">
+                <div class="flex items-center gap-1" title="Explicit files: ${relativeExplicitFiles.join(', ')}">
                     <div class="w-1 h-1 bg-current rounded-full opacity-50"></div>
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -907,8 +950,9 @@
         
         if (message.metadata?.intelligentContextFiles?.length > 0) {
             const intelligentFileCount = message.metadata.intelligentContextFiles.length;
+            const relativeFiles = message.metadata.intelligentContextFiles.map(path => makePathRelative(path));
             metadataHTML += `
-                <div class="flex items-center gap-1" title="AI-selected context: ${message.metadata.intelligentContextFiles.join(', ')}">
+                <div class="flex items-center gap-1" title="AI-selected context: ${relativeFiles.join(', ')}">
                     <div class="w-1 h-1 bg-current rounded-full opacity-50"></div>
                     <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -1146,29 +1190,71 @@
         settings = settingsData;
         renderSettings();
         updateProviderInfo();
+        renderQuickModelSelect();
+        
+        // If we're on the welcome screen (no chat history), refresh it to show updated provider info
+        if (chatHistory.length === 0) {
+            renderChatMessages();
+        }
     }
 
     function updateProviderInfo() {
         const infoElement = document.getElementById('currentProviderInfo');
         if (!infoElement) return;
 
-        // Find the active provider (one that has API key)
+        // Find the active provider - prioritize one with API key
         let activeProvider = null;
+        
+        // First, try the default provider if it has an API key
         if (settings.defaultProvider && settings.apiKeyStatus?.[settings.defaultProvider]) {
             activeProvider = settings.defaultProvider;
-        } else if (settings.availableProviders && settings.availableProviders.length > 0) {
+        } 
+        // If no default provider or it doesn't have API key, find any provider with API key
+        else if (settings.apiKeyStatus) {
+            const providersWithKeys = Object.keys(settings.apiKeyStatus).filter(p => settings.apiKeyStatus[p]);
+            if (providersWithKeys.length > 0) {
+                activeProvider = providersWithKeys[0];
+            }
+        }
+        // Fallback to available providers (even without confirmed API key)
+        else if (settings.availableProviders && settings.availableProviders.length > 0) {
             activeProvider = settings.availableProviders[0];
         }
 
+        console.log('Provider info debug:', {
+            activeProvider,
+            defaultProvider: settings.defaultProvider,
+            apiKeyStatus: settings.apiKeyStatus,
+            availableProviders: settings.availableProviders,
+            selectedModels: settings.selectedModels
+        });
+
         if (activeProvider && settings.selectedModels && settings.selectedModels[activeProvider]) {
             const model = settings.selectedModels[activeProvider];
-            infoElement.innerHTML = `Provider: <strong>${activeProvider}</strong> | Model: <strong>${model}</strong>`;
+            const providerDisplayName = activeProvider.charAt(0).toUpperCase() + activeProvider.slice(1);
+            infoElement.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span><strong>${providerDisplayName}</strong> • ${model}</span>
+                </div>
+            `;
         } else if (activeProvider) {
             const models = settings.providerModels?.[activeProvider] || [];
             const defaultModel = models[0] || 'No model';
-            infoElement.innerHTML = `Provider: <strong>${activeProvider}</strong> | Model: <strong>${defaultModel}</strong> (default)`;
+            const providerDisplayName = activeProvider.charAt(0).toUpperCase() + activeProvider.slice(1);
+            infoElement.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                    <span><strong>${providerDisplayName}</strong> • ${defaultModel} (default)</span>
+                </div>
+            `;
         } else {
-            infoElement.innerHTML = '⚠️ Configure your API keys in settings to get started';
+            infoElement.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span>Configure API keys in settings to get started</span>
+                </div>
+            `;
         }
     }
 
@@ -1454,21 +1540,24 @@
     }
 
     function renderQuickModelSelect() {
-        const select = document.getElementById('quickModelSelect');
-        select.innerHTML = '<option value="">Select Model...</option>';
-
+    const select = document.getElementById('quickModelSelect');
+    
         // Find the best provider to show - either default if it has API key, or first available
-        let activeProvider = null;
-        
-        if (settings.defaultProvider && settings.apiKeyStatus?.[settings.defaultProvider]) {
-            activeProvider = settings.defaultProvider;
-        } else if (settings.availableProviders && settings.availableProviders.length > 0) {
-            activeProvider = settings.availableProviders[0];
-        }
+    let activeProvider = null;
+    
+    if (settings.defaultProvider && settings.apiKeyStatus?.[settings.defaultProvider]) {
+        activeProvider = settings.defaultProvider;
+    } else if (settings.availableProviders && settings.availableProviders.length > 0) {
+        activeProvider = settings.availableProviders[0];
+    }
 
         if (!activeProvider || !settings.providerModels) {
-            return;
-        }
+        select.innerHTML = '<option value="">⚙️ Configure API...</option>';
+    return;
+    }
+        
+        const providerDisplayName = activeProvider.charAt(0).toUpperCase() + activeProvider.slice(1);
+        select.innerHTML = `<option value="">🤖 ${providerDisplayName}...</option>`;
 
         const allModels = settings.providerModels[activeProvider] || [];
         const currentModel = settings.selectedModels?.[activeProvider];

@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { AIProviderManager, Message, ToolCall, ChatResponse, ChatRequest } from './AIProviderManager';
 import { FileContextManager } from '../context/FileContextManager';
-import { ContextRetrievalEngine, RetrievalContext } from '../context/ContextRetrievalEngine';
+import { ContextRetrievalEngine, RetrievalContext, QueryIntent } from '../context/ContextRetrievalEngine';
 import { MCPManager } from '../mcp/MCPManager';
 import { ToolExecutionEngine, ToolExecutionRequest, ToolExecutionResult } from '../mcp/ToolExecutionEngine';
 import { AgentMode } from '../agent/AgentMode';
@@ -767,9 +767,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
     private async getIntelligentContext(userMessage: string, explicitFiles?: string[]): Promise<any[]> {
         try {
-            // Use the context retrieval engine to find relevant files
+            // Use the advanced context retrieval engine with built-in intelligence
             const retrievalContext = await this._contextEngine.retrieveContext(userMessage, {
-                maxFiles: 10,
                 maxFileSize: 100000, // 100KB max per file
                 includeLanguages: ['typescript', 'javascript', 'json', 'markdown', 'python', 'java', 'cpp'],
                 excludePatterns: ['**/node_modules/**', '**/dist/**', '**/build/**']
@@ -792,13 +791,448 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 });
             }
             
-            console.log(`Intelligent context found ${intelligentFiles.length} relevant files for query: "${userMessage}"`);
+            console.log(`Advanced context retrieval found ${intelligentFiles.length} relevant files for query: "${userMessage}"`);
             
             return intelligentFiles;
         } catch (error) {
             console.error('Failed to get intelligent context:', error);
             return [];
         }
+    }
+
+    private shouldRetrieveContext(userMessage: string): boolean {
+        // The ContextRetrievalEngine now handles all intelligent analysis
+        // This method is kept for backward compatibility but delegates to the engine
+        return true; // Engine will determine if context is needed
+    }
+
+    private classifyQueryIntent(userMessage: string): QueryIntent {
+        const message = userMessage.toLowerCase().trim();
+        const tokens = message.split(/\s+/);
+        
+        // === SOCIAL/CONVERSATIONAL QUERIES ===
+        if (this.isSocialQuery(message, tokens)) {
+            return {
+                type: 'social',
+                requiresContext: false,
+                contextConfig: { maxFiles: 0, minRelevanceScore: 1.0 },
+                priority: 'none',
+                scope: 'none'
+            };
+        }
+
+        // === DEBUGGING QUERIES ===
+        if (this.isDebuggingQuery(message, tokens)) {
+            return {
+                type: 'debugging',
+                requiresContext: true,
+                contextConfig: { maxFiles: 12, minRelevanceScore: 0.25 },
+                priority: 'high',
+                scope: 'focused'
+            };
+        }
+
+        // === ARCHITECTURE/SYSTEM ANALYSIS ===
+        if (this.isArchitectureQuery(message, tokens)) {
+            return {
+                type: 'architecture',
+                requiresContext: true,
+                contextConfig: { maxFiles: 20, minRelevanceScore: 0.2 },
+                priority: 'high',
+                scope: 'comprehensive'
+            };
+        }
+
+        // === CODE REVIEW/QUALITY ===
+        if (this.isCodeReviewQuery(message, tokens)) {
+            return {
+                type: 'review',
+                requiresContext: true,
+                contextConfig: { maxFiles: 15, minRelevanceScore: 0.3 },
+                priority: 'high',
+                scope: 'comprehensive'
+            };
+        }
+
+        // === IMPLEMENTATION/DEVELOPMENT ===
+        if (this.isImplementationQuery(message, tokens)) {
+            return {
+                type: 'implementation',
+                requiresContext: true,
+                contextConfig: { maxFiles: 10, minRelevanceScore: 0.35 },
+                priority: 'medium',
+                scope: 'focused'
+            };
+        }
+
+        // === LEARNING/EXPLANATION ===
+        if (this.isLearningQuery(message, tokens)) {
+            return {
+                type: 'learning',
+                requiresContext: true,
+                contextConfig: { maxFiles: 6, minRelevanceScore: 0.4 },
+                priority: 'medium',
+                scope: 'educational'
+            };
+        }
+
+        // === TESTING QUERIES ===
+        if (this.isTestingQuery(message, tokens)) {
+            return {
+                type: 'testing',
+                requiresContext: true,
+                contextConfig: { maxFiles: 8, minRelevanceScore: 0.35 },
+                priority: 'medium',
+                scope: 'testing'
+            };
+        }
+
+        // === PERFORMANCE/OPTIMIZATION ===
+        if (this.isPerformanceQuery(message, tokens)) {
+            return {
+                type: 'performance',
+                requiresContext: true,
+                contextConfig: { maxFiles: 15, minRelevanceScore: 0.3 },
+                priority: 'high',
+                scope: 'comprehensive'
+            };
+        }
+
+        // === SECURITY QUERIES ===
+        if (this.isSecurityQuery(message, tokens)) {
+            return {
+                type: 'security',
+                requiresContext: true,
+                contextConfig: { maxFiles: 12, minRelevanceScore: 0.3 },
+                priority: 'high',
+                scope: 'security'
+            };
+        }
+
+        // === DEPLOYMENT/DEVOPS ===
+        if (this.isDeploymentQuery(message, tokens)) {
+            return {
+                type: 'deployment',
+                requiresContext: true,
+                contextConfig: { maxFiles: 8, minRelevanceScore: 0.4 },
+                priority: 'medium',
+                scope: 'infrastructure'
+            };
+        }
+
+        // === DOCUMENTATION QUERIES ===
+        if (this.isDocumentationQuery(message, tokens)) {
+            return {
+                type: 'documentation',
+                requiresContext: true,
+                contextConfig: { maxFiles: 5, minRelevanceScore: 0.4 },
+                priority: 'low',
+                scope: 'focused'
+            };
+        }
+
+        // === QUICK FIXES/SIMPLE TASKS ===
+        if (this.isQuickFixQuery(message, tokens)) {
+            return {
+                type: 'quickfix',
+                requiresContext: true,
+                contextConfig: { maxFiles: 3, minRelevanceScore: 0.6 },
+                priority: 'low',
+                scope: 'minimal'
+            };
+        }
+
+        // === DEFAULT: CONSERVATIVE TECHNICAL ===
+        if (this.hasTechnicalIndicators(message, tokens)) {
+            return {
+                type: 'technical',
+                requiresContext: true,
+                contextConfig: { maxFiles: 5, minRelevanceScore: 0.5 },
+                priority: 'medium',
+                scope: 'focused'
+            };
+        }
+
+        // === NON-TECHNICAL FALLBACK ===
+        return {
+            type: 'general',
+            requiresContext: false,
+            contextConfig: { maxFiles: 0, minRelevanceScore: 1.0 },
+            priority: 'none',
+            scope: 'none'
+        };
+    }
+
+    private isSocialQuery(message: string, tokens: string[]): boolean {
+        const socialPatterns = [
+            // Greetings
+            /^(hi|hello|hey|good morning|good afternoon|good evening|greetings)(\s|$)/,
+            // Thanks and goodbyes
+            /^(thanks?( you)?|thank you|bye|goodbye|see you|farewell)(\s|$)/,
+            // Status checks
+            /^(how are you|what'?s up|what'?s new|how'?s it going)/,
+            // Confirmations
+            /^(yes|no|ok|okay|sure|alright|got it|understood|makes sense)$/,
+            // Compliments
+            /^(good|great|nice|awesome|cool|excellent|perfect|amazing)(\s|$)/,
+            // Self-introduction
+            /^(who are you|what are you|tell me about yourself|what can you do)/
+        ];
+
+        return socialPatterns.some(pattern => pattern.test(message)) ||
+               (tokens.length <= 2 && ['hi', 'hello', 'hey', 'thanks', 'ok', 'yes', 'no'].includes(tokens[0]));
+    }
+
+    private isDebuggingQuery(message: string, tokens: string[]): boolean {
+        const debugKeywords = [
+            'bug', 'error', 'exception', 'crash', 'fail', 'broken', 'not working', 'issue', 'problem',
+            'debug', 'troubleshoot', 'diagnose', 'trace', 'stack trace', 'stacktrace',
+            'undefined', 'null', 'reference error', 'syntax error', 'type error',
+            'memory leak', 'performance issue', 'slow', 'hanging', 'timeout',
+            'fix', 'solve', 'resolve', 'repair'
+        ];
+
+        const debugPatterns = [
+            /why (is|does|doesn'?t|isn'?t|won'?t)/,
+            /what'?s wrong with/,
+            /(error|exception|bug|issue|problem).*(help|fix|solve)/,
+            /(help|fix|solve).*(error|exception|bug|issue|problem)/,
+            /not working|doesn'?t work|won'?t work/,
+            /getting.*error/,
+            /console.*error/
+        ];
+
+        return debugKeywords.some(keyword => message.includes(keyword)) ||
+               debugPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isArchitectureQuery(message: string, tokens: string[]): boolean {
+        const archKeywords = [
+            'architecture', 'design', 'structure', 'pattern', 'system', 'overview',
+            'relationship', 'dependency', 'connection', 'integration', 'flow',
+            'microservice', 'monolith', 'component', 'module', 'service',
+            'database schema', 'data model', 'entity relationship',
+            'scalability', 'maintainability', 'extensibility'
+        ];
+
+        const archPatterns = [
+            /how (does|do) .* work/,
+            /what is the .* (architecture|structure|design)/,
+            /explain the .* (system|structure|flow)/,
+            /how are .* connected/,
+            /what'?s the relationship between/,
+            /analyze the (codebase|project|system)/,
+            /review the (architecture|design|structure)/
+        ];
+
+        return archKeywords.some(keyword => message.includes(keyword)) ||
+               archPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isCodeReviewQuery(message: string, tokens: string[]): boolean {
+        const reviewKeywords = [
+            'review', 'analyze', 'audit', 'check', 'examine', 'inspect',
+            'code quality', 'best practice', 'clean code', 'refactor',
+            'smell', 'anti-pattern', 'violation', 'standard', 'convention',
+            'maintainable', 'readable', 'optimization', 'improvement'
+        ];
+
+        const reviewPatterns = [
+            /review (this|the|my) code/,
+            /analyze (this|the|my) (code|function|class|file)/,
+            /check (this|the|my) (code|implementation)/,
+            /is this.*good|is this.*correct|is this.*right/,
+            /how can I improve/,
+            /what'?s wrong with this/,
+            /any suggestions for/,
+            /code review/
+        ];
+
+        return reviewKeywords.some(keyword => message.includes(keyword)) ||
+               reviewPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isImplementationQuery(message: string, tokens: string[]): boolean {
+        const implKeywords = [
+            'implement', 'create', 'build', 'make', 'add', 'write', 'develop',
+            'generate', 'construct', 'setup', 'configure', 'install',
+            'feature', 'functionality', 'component', 'service', 'endpoint',
+            'crud', 'api', 'route', 'handler', 'middleware', 'utility'
+        ];
+
+        const implPatterns = [
+            /how (to|do I) (create|build|make|implement|add|write)/,
+            /can you (create|build|make|implement|add|write)/,
+            /I (need|want) to (create|build|make|implement|add|write)/,
+            /help me (create|build|make|implement|add|write)/,
+            /show me how to/,
+            /walk me through/
+        ];
+
+        return implKeywords.some(keyword => message.includes(keyword)) ||
+               implPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isLearningQuery(message: string, tokens: string[]): boolean {
+        const learnKeywords = [
+            'explain', 'understand', 'learn', 'teach', 'what is', 'what does',
+            'how does', 'why does', 'concept', 'principle', 'theory',
+            'tutorial', 'guide', 'documentation', 'example', 'sample'
+        ];
+
+        const learnPatterns = [
+            /what (is|does|are)/,
+            /how (does|do|is|are)/,
+            /why (does|do|is|are)/,
+            /explain.*to me/,
+            /help me understand/,
+            /I don'?t understand/,
+            /can you explain/,
+            /what'?s the difference between/
+        ];
+
+        return learnKeywords.some(keyword => message.includes(keyword)) ||
+               learnPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isTestingQuery(message: string, tokens: string[]): boolean {
+        const testKeywords = [
+            'test', 'testing', 'unit test', 'integration test', 'e2e test',
+            'mock', 'stub', 'spy', 'jest', 'mocha', 'chai', 'cypress',
+            'coverage', 'assertion', 'expect', 'should', 'describe', 'it'
+        ];
+
+        const testPatterns = [
+            /write.*test/,
+            /test.*function|test.*component|test.*class/,
+            /how to test/,
+            /testing strategy/,
+            /unit test|integration test/
+        ];
+
+        return testKeywords.some(keyword => message.includes(keyword)) ||
+               testPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isPerformanceQuery(message: string, tokens: string[]): boolean {
+        const perfKeywords = [
+            'performance', 'optimize', 'speed', 'fast', 'slow', 'latency',
+            'memory', 'cpu', 'bottleneck', 'profiling', 'benchmark',
+            'cache', 'lazy loading', 'pagination', 'compression',
+            'bundle size', 'minify', 'tree shaking', 'code splitting'
+        ];
+
+        const perfPatterns = [
+            /make.*faster|make.*better performance/,
+            /optimize.*performance/,
+            /improve.*speed|improve.*performance/,
+            /reduce.*time|reduce.*latency/,
+            /performance.*issue|performance.*problem/
+        ];
+
+        return perfKeywords.some(keyword => message.includes(keyword)) ||
+               perfPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isSecurityQuery(message: string, tokens: string[]): boolean {
+        const securityKeywords = [
+            'security', 'vulnerability', 'exploit', 'attack', 'threat',
+            'authentication', 'authorization', 'permission', 'access control',
+            'xss', 'csrf', 'injection', 'sql injection', 'sanitize',
+            'encrypt', 'decrypt', 'hash', 'salt', 'token', 'jwt',
+            'https', 'ssl', 'tls', 'certificate'
+        ];
+
+        const securityPatterns = [
+            /security.*issue|security.*problem|security.*vulnerability/,
+            /is this secure|is this safe/,
+            /security.*review|security.*audit/,
+            /protect.*against|prevent.*attack/
+        ];
+
+        return securityKeywords.some(keyword => message.includes(keyword)) ||
+               securityPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isDeploymentQuery(message: string, tokens: string[]): boolean {
+        const deployKeywords = [
+            'deploy', 'deployment', 'production', 'staging', 'environment',
+            'docker', 'container', 'kubernetes', 'k8s', 'ci/cd', 'pipeline',
+            'build', 'compile', 'bundle', 'package', 'release',
+            'server', 'cloud', 'aws', 'azure', 'gcp', 'heroku', 'vercel'
+        ];
+
+        const deployPatterns = [
+            /deploy.*to|deploy.*on/,
+            /how to deploy/,
+            /deployment.*process|deployment.*strategy/,
+            /build.*for production/,
+            /production.*build|production.*deployment/
+        ];
+
+        return deployKeywords.some(keyword => message.includes(keyword)) ||
+               deployPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isDocumentationQuery(message: string, tokens: string[]): boolean {
+        const docKeywords = [
+            'document', 'documentation', 'comment', 'readme', 'guide',
+            'manual', 'instruction', 'description', 'specification',
+            'jsdoc', 'typedoc', 'swagger', 'openapi'
+        ];
+
+        const docPatterns = [
+            /write.*documentation|create.*documentation/,
+            /document.*this|document.*function|document.*class/,
+            /add.*comment|add.*documentation/,
+            /generate.*docs|generate.*documentation/
+        ];
+
+        return docKeywords.some(keyword => message.includes(keyword)) ||
+               docPatterns.some(pattern => pattern.test(message));
+    }
+
+    private isQuickFixQuery(message: string, tokens: string[]): boolean {
+        const quickKeywords = [
+            'quick', 'simple', 'small', 'minor', 'tiny', 'little',
+            'change', 'update', 'modify', 'tweak', 'adjust',
+            'rename', 'move', 'delete', 'remove'
+        ];
+
+        return tokens.length <= 5 && quickKeywords.some(keyword => message.includes(keyword));
+    }
+
+    private hasTechnicalIndicators(message: string, tokens: string[]): boolean {
+        const techIndicators = [
+            // Programming languages
+            'javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'rust', 'go',
+            'php', 'ruby', 'swift', 'kotlin', 'scala', 'html', 'css',
+            
+            // Frameworks/Libraries
+            'react', 'vue', 'angular', 'node', 'express', 'django', 'flask',
+            'spring', 'laravel', 'rails', 'next', 'nuxt', 'svelte',
+            
+            // Technical concepts
+            'function', 'class', 'method', 'variable', 'constant', 'array',
+            'object', 'string', 'number', 'boolean', 'null', 'undefined',
+            'async', 'await', 'promise', 'callback', 'closure', 'scope',
+            'prototype', 'inheritance', 'polymorphism', 'encapsulation',
+            
+            // File extensions
+            '.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.cpp', '.cs',
+            '.html', '.css', '.json', '.xml', '.yml', '.yaml', '.md',
+            
+            // Development tools
+            'git', 'npm', 'yarn', 'webpack', 'babel', 'eslint', 'prettier',
+            'vscode', 'github', 'gitlab', 'bitbucket',
+            
+            // Database/Backend
+            'database', 'sql', 'mongodb', 'postgresql', 'mysql', 'redis',
+            'api', 'rest', 'graphql', 'endpoint', 'route', 'middleware'
+        ];
+
+        return techIndicators.some(indicator => message.includes(indicator)) ||
+               /\.(js|ts|jsx|tsx|py|java|cpp|cs|html|css|json|xml|yml|yaml|md)(\s|$)/i.test(message);
     }
 
     private detectLanguageFromPath(filePath: string): string {
