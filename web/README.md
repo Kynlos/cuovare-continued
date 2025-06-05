@@ -1,95 +1,79 @@
 # Cuovare Website
 
-A beautiful, responsive website showcasing the Cuovare VS Code extension.
+This directory contains the static website for Cuovare, built with Tailwind CSS and designed to look like GitHub's markdown rendering.
 
-## File Structure
+## Files
 
-```
-web/
-├── index.html      # Main HTML structure
-├── styles.css      # Custom CSS styles and animations  
-├── script.js       # Interactive JavaScript functionality
-└── README.md       # This file
-```
+- `index.html` - Main homepage (based on README.md)
+- `agent-mode.html` - Agent Mode documentation (based on docs/AGENT_MODE.md)
+- `development.html` - Development guide (based on docs/DEVELOPMENT.md)
+- `changelog.html` - Version history (based on CHANGELOG.md)
+- `styles.css` - GitHub-like markdown styling
+- `README.md` - This file
 
 ## Features
 
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile
-- **Modern Animations**: Smooth scrolling, hover effects, and entrance animations
-- **Glass Morphism**: Beautiful translucent effects throughout
-- **Performance Optimized**: Minimal dependencies, optimized loading
-- **Accessibility**: Proper focus states, reduced motion support, high contrast mode
-
-## Technologies Used
-
-- **HTML5**: Semantic markup structure
-- **Tailwind CSS**: Utility-first CSS framework (via CDN)
-- **Custom CSS**: Enhanced animations and effects
-- **Vanilla JavaScript**: Modern ES6+ features for interactivity
-- **Font Awesome**: Icon library
-- **Google Fonts**: Inter and Fira Code typography
-
-## Key Sections
-
-1. **Hero Section**: Eye-catching introduction with animated elements
-2. **Features**: Showcase of 6 main capabilities with interactive cards
-3. **Roadmap**: Development timeline with 4 phases
-4. **Documentation**: Getting started guides and resources
-5. **Footer**: Links and community information
+- 📱 **Responsive Design** - Mobile-first approach with Tailwind CSS
+- 🎨 **GitHub-like Styling** - Familiar markdown rendering
+- 🔍 **Syntax Highlighting** - Code blocks with highlight.js
+- 📊 **Interactive Elements** - Mermaid diagrams and charts
+- ⚡ **Fast Loading** - CDN-based resources
+- 🧭 **Easy Navigation** - Consistent header navigation
 
 ## Development
 
-To work on the website:
+To serve the website locally:
 
-1. Open `index.html` in a web browser
-2. For live reloading, use a local server:
-   ```bash
-   # Using Python
-   python -m http.server 8000
-   
-   # Using Node.js
-   npx serve .
-   
-   # Using VS Code Live Server extension
-   Right-click index.html > "Open with Live Server"
-   ```
+```bash
+# Using Python 3
+python -m http.server 8000
 
-## Performance Notes
+# Using Node.js (if you have serve installed)
+npx serve .
 
-- All external resources are loaded from CDN for optimal caching
-- Images are optimized for web delivery  
-- JavaScript is modular and only runs when needed
-- CSS animations respect user's motion preferences
+# Using PHP
+php -S localhost:8000
+```
 
-## Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## Customization
-
-### Colors
-The color scheme is defined in CSS custom properties. Main colors:
-- Primary: `#667eea` (purple-blue)
-- Secondary: `#764ba2` (deep purple)
-- Accent: Various gradients between primary colors
-
-### Animations
-All animations can be disabled by users with motion sensitivity via `prefers-reduced-motion` media query.
-
-### Content
-To update content, edit the respective sections in `index.html`. The structure is clearly commented and organized.
+Then visit `http://localhost:8000`
 
 ## Deployment
 
-The website is static and can be deployed to any web server or CDN:
+This is a static website that can be deployed to:
 
 - GitHub Pages
 - Netlify
 - Vercel
-- AWS S3 + CloudFront
-- Any traditional web hosting
+- Any static hosting service
 
-Simply upload all files to your web server's public directory.
+## Structure
+
+```
+web/
+├── index.html           # Homepage
+├── agent-mode.html      # Agent Mode guide
+├── development.html     # Development guide
+├── changelog.html       # Version history
+├── styles.css          # GitHub-like styling
+└── README.md           # This file
+```
+
+## Content Sources
+
+The website content is automatically derived from:
+
+- `../README.md` → `index.html`
+- `../docs/AGENT_MODE.md` → `agent-mode.html`
+- `../docs/DEVELOPMENT.md` → `development.html`
+- `../CHANGELOG.md` → `changelog.html`
+
+## Styling
+
+The website uses:
+
+- **Tailwind CSS** via CDN for utilities
+- **Highlight.js** for syntax highlighting
+- **Mermaid** for diagrams
+- **Custom CSS** for GitHub-like markdown rendering
+
+All styling is designed to match GitHub's markdown appearance while being responsive and modern.

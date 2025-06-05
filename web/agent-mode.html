@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Mode - Cuovare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="../resources/icon.png">
+</head>
+<body class="bg-white text-gray-900">
+    <!-- Navigation -->
+    <nav class="bg-gray-50 border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="index.html" class="flex items-center space-x-4 hover:opacity-80 transition-opacity">
+                    <img src="../resources/icon.png" alt="Cuovare" class="h-8 w-8">
+                    <h1 class="text-xl font-bold text-gray-900">Cuovare</h1>
+                </a>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="text-gray-600 hover:text-gray-800">Home</a>
+                    <a href="agent-mode.html" class="text-blue-600 hover:text-blue-800 font-medium">Agent Mode</a>
+                    <a href="development.html" class="text-gray-600 hover:text-gray-800">Development</a>
+                    <a href="changelog.html" class="text-gray-600 hover:text-gray-800">Changelog</a>
+                    <a href="https://github.com/Kynlos/cuovare" class="text-gray-600 hover:text-gray-800">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <article class="prose prose-gray max-w-none">
+            <div class="markdown-body">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">🤖 Full Agent Mode</h1>
+                
+                <p class="text-lg text-gray-700 mb-8"><strong>Cuovare's flagship feature</strong> - Transform Cuovare from a chat assistant into an autonomous AI agent capable of performing complex, multi-step development tasks without constant supervision.</p>
+
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">Overview</h2>
+
+                <p class="text-gray-700 mb-8">Full Agent Mode enables Cuovare to operate autonomously, breaking down complex requests into actionable plans and executing them step-by-step. Unlike traditional chat-based AI assistants, Agent Mode can perform real work in your codebase: reading files, making changes, running commands, and managing your development workflow.</p>
+
+                <div class="my-8">
+                    <div class="mermaid">
+                        graph TB
+                            A[User Request] --> B{Agent Mode Enabled?}
+                            B -->|No| C[Standard Chat Response]
+                            B -->|Yes| D[Agent Planning Phase]
+                            
+                            D --> E[Break Down Task]
+                            E --> F[Generate Action Plan]
+                            F --> G[Execute Actions]
+                            
+                            G --> H{Action Type}
+                            H -->|File Operations| I[Read/Write/Edit Files]
+                            H -->|Terminal Commands| J[Execute Commands] 
+                            H -->|Search & Analysis| K[Codebase Search]
+                            H -->|Git Operations| L[Git Commands]
+                            H -->|MCP Tools| M[External Tools]
+                            
+                            I --> N[Update Progress]
+                            J --> N
+                            K --> N
+                            L --> N
+                            M --> N
+                            
+                            N --> O{More Actions?}
+                            O -->|Yes| P[Next Action]
+                            P --> G
+                            O -->|No| Q[Final Report]
+                            
+                            Q --> R[Present Results]
+                            
+                            style D fill:#e1f5fe
+                            style F fill:#f3e5f5
+                            style G fill:#e8f5e8
+                            style R fill:#fff3e0
+                    </div>
+                </div>
+
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">🚀 Getting Started</h2>
+
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Enabling Agent Mode</h3>
+
+                <ol class="list-decimal list-inside space-y-2 mb-6">
+                    <li><strong>Visual Toggle</strong>: Click the purple robot icon (🤖) in the chat header</li>
+                    <li><strong>Status Indicator</strong>: The button will glow purple when active</li>
+                    <li><strong>Confirmation</strong>: You'll see a system message confirming the mode change</li>
+                </ol>
+
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Example Requests</h3>
+
+                <p class="text-gray-700 mb-4">Agent Mode excels at complex, multi-step tasks:</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">🔧 Code Refactoring</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm"><code>"Refactor the authentication system to use JWT tokens instead of sessions"</code></pre>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">📁 Project Setup</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm"><code>"Create a new React component with TypeScript, add unit tests, and update the main export"</code></pre>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">🐛 Bug Investigation</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm"><code>"Find and fix the memory leak in the data processing pipeline"</code></pre>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">📚 Documentation</h4>
+                        <pre class="bg-gray-100 p-3 rounded text-sm"><code>"Generate comprehensive API documentation for all public methods in the services directory"</code></pre>
+                    </div>
+                </div>
+
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">🎯 Core Capabilities</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">File Operations</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><strong>Read</strong>: Analyze existing code and configurations</li>
+                            <li><strong>Write</strong>: Create new files with generated content</li>
+                            <li><strong>Edit</strong>: Modify existing files with precise changes</li>
+                            <li><strong>Create</strong>: Generate entire project structures</li>
+                            <li><strong>Delete</strong>: Clean up unused or deprecated files</li>
+                        </ul>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">Terminal Commands</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><strong>Build Scripts</strong>: Run compilation and build processes</li>
+                            <li><strong>Testing</strong>: Execute test suites and generate reports</li>
+                            <li><strong>Package Management</strong>: Install dependencies and manage versions</li>
+                            <li><strong>Development Tools</strong>: Run linters, formatters, and analyzers</li>
+                        </ul>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">Codebase Analysis</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><strong>Intelligent Search</strong>: Find relevant code across the entire project</li>
+                            <li><strong>Dependency Mapping</strong>: Understand component relationships</li>
+                            <li><strong>Pattern Recognition</strong>: Identify architectural patterns and anti-patterns</li>
+                            <li><strong>Impact Analysis</strong>: Assess the effects of proposed changes</li>
+                        </ul>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">Git Operations</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><strong>Commit Generation</strong>: Create meaningful commit messages</li>
+                            <li><strong>Branch Management</strong>: Create, switch, and merge branches</li>
+                            <li><strong>Conflict Resolution</strong>: Help resolve merge conflicts</li>
+                            <li><strong>History Analysis</strong>: Understand project evolution</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">🛠️ 16 Working Enterprise Tools</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ File Operations</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Multi-File Editing</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Terminal</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Search</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Git Operations</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Testing</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Debugging</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Security</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Performance</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Code Review</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Auto Testing</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Refactoring</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Error Detection</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Quality Metrics</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Deployment</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <span class="text-green-800 font-medium">✅ Package Manager</span>
+                    </div>
+                </div>
+
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">💼 Real-World Examples</h2>
+
+                <div class="space-y-6">
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">Enhanced Autonomous Development (v0.9.1)</h4>
+                        <pre class="bg-gray-900 text-green-400 p-4 rounded text-sm overflow-x-auto"><code>Request: "Create a complete user authentication system with tests"
+Progress: Step 1/6: Creating `auth.ts` with JWT implementation → Step 2/6: Writing authentication middleware → 
+         Step 3/6: Generating comprehensive unit tests → Step 4/6: Running test validation → 
+         Step 5/6: Creating integration tests → Step 6/6: Generating documentation
+Result: 🎉 Task Completed Successfully!
+        • Created secure authentication system (5 files)
+        • Generated comprehensive test suite (100% coverage)
+        • Validated all functionality with automated testing
+        Files created: `auth.ts`, `auth.middleware.ts`, `auth.test.ts`, `auth.integration.test.ts`, `auth-docs.md`</code></pre>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-3">Smart Bug Fixing with Multi-Tool Execution (v0.9.1)</h4>
+                        <pre class="bg-gray-900 text-green-400 p-4 rounded text-sm overflow-x-auto"><code>Request: "Fix the memory leak in the file watcher component"
+Progress: Step 1/4: Analyzing `fileWatcher.ts` with performance profiling → Step 2/4: Identifying leak sources → 
+         Step 3/4: Refactoring with proper cleanup → Step 4/4: Verifying fix with performance tests
+Result: 🎉 Task Completed Successfully!
+        • Identified 3 memory leak sources using performance profiling
+        • Applied proper cleanup patterns and resource management
+        • Verified 89% memory usage reduction through automated testing
+        Files modified: `fileWatcher.ts`, `fileWatcher.test.ts`</code></pre>
+                    </div>
+                </div>
+
+                <div class="mt-12 text-center">
+                    <div class="space-x-4">
+                        <a href="index.html" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            ← Back to Home
+                        </a>
+                        <a href="development.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                            Development Guide →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        // Initialize syntax highlighting and mermaid
+        hljs.highlightAll();
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
