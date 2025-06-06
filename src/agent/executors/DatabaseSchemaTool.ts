@@ -55,7 +55,7 @@ interface ConstraintSchema {
 }
 
 interface RelationshipSchema {
-    type: 'one-to-one' | 'one-to-many' | 'many-to-many';
+    type: 'one-to-one' | 'one-to-many' | 'many-to-many' | 'many-to-one';
     fromTable: string;
     fromColumns: string[];
     toTable: string;
@@ -282,7 +282,7 @@ export class DatabaseSchemaTool implements ToolExecutor {
             };
         }
 
-        const analysis = {
+        const analysis: any = {
             table: tableSchema,
             dataTypes: this.analyzeDataTypes(tableSchema.columns),
             indexAnalysis: this.analyzeIndexes(tableSchema.indexes),
@@ -991,12 +991,12 @@ export class DatabaseSchemaTool implements ToolExecutor {
     private async computeSchemaDifferences(source: DatabaseSchema, target: DatabaseSchema, ignoreNames?: boolean): Promise<any> {
         const differences = {
             totalDifferences: 0,
-            missingTables: [],
-            extraTables: [],
-            modifiedTables: [],
-            missingColumns: [],
-            extraColumns: [],
-            modifiedColumns: []
+            missingTables: [] as string[],
+            extraTables: [] as string[],
+            modifiedTables: [] as any[],
+            missingColumns: [] as any[],
+            extraColumns: [] as any[],
+            modifiedColumns: [] as any[]
         };
         
         // Compare tables
@@ -1098,7 +1098,7 @@ export class DatabaseSchemaTool implements ToolExecutor {
 
     private async prioritizeOptimizations(optimizations: any[]): Promise<any[]> {
         const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
-        return optimizations.sort((a, b) => (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0));
+        return optimizations.sort((a, b) => (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a.priority as keyof typeof priorityOrder] || 0));
     }
 
     private async estimateSchemaOptimizationImpact(optimizations: any[]): Promise<any> {

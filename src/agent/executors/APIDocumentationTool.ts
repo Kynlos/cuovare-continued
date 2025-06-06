@@ -761,7 +761,7 @@ export class APIDocumentationTool implements ToolExecutor {
     }
 
     private parseJSDocComments(comments: string[]): any {
-        const doc = { summary: '', description: '', tags: [], parameters: [], responses: {} };
+        const doc = { summary: '', description: '', tags: [] as string[], parameters: [] as string[], responses: {} as Record<string, any> };
         let currentSection = 'description';
         
         for (const comment of comments) {
@@ -805,7 +805,7 @@ export class APIDocumentationTool implements ToolExecutor {
     }
 
     private extractPythonDocstring(lines: string[], startIndex: number): any {
-        const doc = { summary: '', description: '', tags: [], parameters: [], responses: {} };
+        const doc = { summary: '', description: '', tags: [] as string[], parameters: [] as string[], responses: {} as Record<string, any> };
         
         // Find the start of docstring
         let i = startIndex;
@@ -829,7 +829,7 @@ export class APIDocumentationTool implements ToolExecutor {
     }
 
     private parsePythonDocstring(lines: string[]): any {
-        const doc = { summary: '', description: '', tags: [], parameters: [], responses: {} };
+        const doc = { summary: '', description: '', tags: [] as string[], parameters: [] as string[], responses: {} as Record<string, any> };
         
         if (lines.length === 0) return doc;
         
@@ -866,7 +866,7 @@ export class APIDocumentationTool implements ToolExecutor {
     }
 
     private parseJavaDocComments(comments: string[]): any {
-        const doc = { summary: '', description: '', tags: [], parameters: [], responses: {} };
+        const doc = { summary: '', description: '', tags: [] as string[], parameters: [] as string[], responses: {} as Record<string, any> };
         
         for (const comment of comments) {
             const cleaned = comment.replace(/^\/?\*+\/?|\*\/$/g, '').trim();
@@ -1316,7 +1316,7 @@ ${this.convertPathsToYAML(spec.paths)}`;
                 description: spec.info.description,
                 schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
             },
-            item: []
+            item: [] as any[]
         };
 
         for (const [path, methods] of Object.entries(spec.paths)) {
@@ -1325,14 +1325,14 @@ ${this.convertPathsToYAML(spec.paths)}`;
                     name: endpoint.summary || `${method.toUpperCase()} ${path}`,
                     request: {
                         method: method.toUpperCase(),
-                        header: [],
+                        header: [] as any[],
                         url: {
                             raw: `{{baseUrl}}${path}`,
                             host: ["{{baseUrl}}"],
                             path: path.split('/').filter(Boolean)
                         }
                     },
-                    response: []
+                    response: [] as any[]
                 };
 
                 collection.item.push(item);

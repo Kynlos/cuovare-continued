@@ -357,7 +357,7 @@ export class CodeQualityMetricsTool implements ToolExecutor {
     }
 
     private calculateTechnicalDebt(content: string, threshold: string): number {
-        const thresholdConfig = this.thresholds[threshold];
+        const thresholdConfig = this.thresholds[threshold as keyof typeof this.thresholds];
         const complexity = this.calculateCyclomaticComplexity(content);
         const loc = this.countLinesOfCode(content);
         
@@ -424,7 +424,7 @@ export class CodeQualityMetricsTool implements ToolExecutor {
 
     private analyzeFunctions(content: string, threshold: string): Array<{ name: string; complexity: number; lines: number; parameters: number; issues: string[] }> {
         const functions: Array<{ name: string; complexity: number; lines: number; parameters: number; issues: string[] }> = [];
-        const thresholdConfig = this.thresholds[threshold];
+        const thresholdConfig = this.thresholds[threshold as keyof typeof this.thresholds];
         
         // Match function declarations
         const functionPattern = /function\s+(\w+)\s*\(([^)]*)\)\s*{([^{}]*(?:{[^{}]*}[^{}]*)*)}/g;
@@ -502,9 +502,9 @@ export class CodeQualityMetricsTool implements ToolExecutor {
         return classes;
     }
 
-    private detectQualityIssues(content: string, threshold: string, filePath: string): Array<{ type: string; severity: string; message: string; line?: number; suggestion: string }> {
-        const issues: Array<{ type: string; severity: string; message: string; line?: number; suggestion: string }> = [];
-        const thresholdConfig = this.thresholds[threshold];
+    private detectQualityIssues(content: string, threshold: string, filePath: string): Array<{ type: 'style' | 'size' | 'maintainability' | 'complexity'; severity: 'low' | 'medium' | 'high' | 'critical'; message: string; line?: number; suggestion: string }> {
+        const issues: Array<{ type: 'style' | 'size' | 'maintainability' | 'complexity'; severity: 'low' | 'medium' | 'high' | 'critical'; message: string; line?: number; suggestion: string }> = [];
+        const thresholdConfig = this.thresholds[threshold as keyof typeof this.thresholds];
         const lines = content.split('\n');
         
         // Check file length
@@ -567,18 +567,19 @@ export class CodeQualityMetricsTool implements ToolExecutor {
     }
 
     private generateProjectMetrics(fileMetrics: QualityMetrics[], threshold: string): ProjectMetrics {
+        const totalLines = fileMetrics.reduce((sum, file) => sum + file.metrics.linesOfCode, 0);
         const summary = {
             totalFiles: fileMetrics.length,
-            totalLines: fileMetrics.reduce((sum, file) => sum + file.metrics.linesOfCode, 0),
+            totalLines,
             averageComplexity: Math.round(fileMetrics.reduce((sum, file) => sum + file.metrics.cyclomaticComplexity, 0) / fileMetrics.length),
             averageMaintainability: Math.round(fileMetrics.reduce((sum, file) => sum + file.metrics.maintainabilityIndex, 0) / fileMetrics.length),
-            technicalDebtRatio: Math.round(fileMetrics.reduce((sum, file) => sum + file.metrics.technicalDebt, 0) / summary.totalLines * 100),
+            technicalDebtRatio: Math.round(fileMetrics.reduce((sum, file) => sum + file.metrics.technicalDebt, 0) / totalLines * 100),
             qualityGate: 'passed' as 'passed' | 'failed',
             grade: 'A' as 'A' | 'B' | 'C' | 'D' | 'F'
         };
 
         // Determine quality gate and grade
-        const thresholdConfig = this.thresholds[threshold];
+        const thresholdConfig = this.thresholds[threshold as keyof typeof this.thresholds];
         const criticalIssues = fileMetrics.reduce((sum, file) => 
             sum + file.issues.filter(issue => issue.severity === 'critical').length, 0);
         
@@ -801,7 +802,7 @@ export class CodeQualityMetricsTool implements ToolExecutor {
             'D': '#ff9800',
             'F': '#f44336'
         };
-        return colors[grade] || '#757575';
+        return colors[grade as keyof typeof colors] || '#757575';
     }
 
     private formatResults(projectMetrics: ProjectMetrics, reportPath?: string, comparison?: any): string {

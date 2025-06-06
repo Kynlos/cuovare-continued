@@ -443,7 +443,7 @@ export class APITool implements ToolExecutor {
                     description: 'Development server'
                 }
             ],
-            paths: {}
+            paths: {} as Record<string, any>
         };
 
         for (const route of routes) {
@@ -702,7 +702,7 @@ class APIClient:
   }`;
             case 'python':
                 return `def ${methodName.toLowerCase()}(self${this.generatePyParams(path, operation)}) -> Dict[str, Any]:
-        return self._request('${path}', '${method.upper()}'${this.generatePyArgs(operation)})`;
+        return self._request('${path}', '${String(method).toUpperCase()}'${this.generatePyArgs(operation)})`;
             default:
                 return '';
         }
@@ -1040,11 +1040,12 @@ describe('API Tests', () => {
                 description: spec.info?.description || 'Generated from OpenAPI specification',
                 schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
             },
-            item: []
+            item: [] as any[]
         };
 
         for (const [path, methods] of Object.entries(spec.paths)) {
             for (const [method, operation] of Object.entries(methods as any)) {
+                const operationTyped = operation as any;
                 const item = {
                     name: `${method.toUpperCase()} ${path}`,
                     request: {
@@ -1063,10 +1064,10 @@ describe('API Tests', () => {
                     }
                 };
 
-                if (operation.requestBody) {
+                if (operationTyped.requestBody) {
                     (item.request as any).body = {
                         mode: 'raw',
-                        raw: JSON.stringify(this.generateSampleBody(operation.requestBody), null, 2)
+                        raw: JSON.stringify(this.generateSampleBody(operationTyped.requestBody), null, 2)
                     };
                 }
 
@@ -1095,7 +1096,7 @@ describe('API Tests', () => {
             security: this.analyzeSecurityIssues(spec),
             bestPractices: this.analyzeBestPractices(spec),
             performance: this.analyzePerformance(spec),
-            recommendations: []
+            recommendations: [] as string[]
         };
 
         // Generate recommendations based on analysis
@@ -1138,8 +1139,8 @@ describe('API Tests', () => {
     }
 
     private analyzeBestPractices(spec: any): any {
-        const issues = [];
-        const recommendations = [];
+        const issues = [] as string[];
+        const recommendations = [] as string[];
 
         // Check for consistent naming
         const paths = Object.keys(spec.paths || {});
@@ -1155,7 +1156,8 @@ describe('API Tests', () => {
         // Check for missing descriptions
         for (const [path, methods] of Object.entries(spec.paths || {})) {
             for (const [method, operation] of Object.entries(methods as any)) {
-                if (!operation.description && !operation.summary) {
+                const operationTyped = operation as any;
+                if (!operationTyped.description && !operationTyped.summary) {
                     issues.push(`Missing description for ${method.toUpperCase()} ${path}`);
                 }
             }
@@ -1165,8 +1167,8 @@ describe('API Tests', () => {
     }
 
     private analyzePerformance(spec: any): any {
-        const issues = [];
-        const recommendations = [];
+        const issues = [] as any[];
+        const recommendations = [] as string[];
 
         // Check for pagination
         const hasPaginationParams = JSON.stringify(spec).includes('limit') || 
@@ -1333,11 +1335,12 @@ describe('API Tests', () => {
         
         for (const [path, methods] of Object.entries(spec.paths || {})) {
             for (const [method, operation] of Object.entries(methods as any)) {
+                const operationTyped = operation as any;
                 content += `
                     <div class="endpoint">
                         <span class="method ${method}">${method.toUpperCase()}</span>
                         <strong>${path}</strong>
-                        <p>${operation.summary || operation.description || 'No description available'}</p>
+                        <p>${operationTyped.summary || operationTyped.description || 'No description available'}</p>
                     </div>
                 `;
             }

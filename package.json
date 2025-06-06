@@ -609,7 +609,7 @@
     "clean": "rimraf out coverage .vscode-test",
     "reset": "pnpm run clean && pnpm install",
     "build": "pnpm run compile",
-    "package": "vsce package",
+    "package": "vsce package --no-dependencies",
     "dev": "pnpm run watch"
   },
   "dependencies": {
