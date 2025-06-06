@@ -5,6 +5,10 @@
   "version": "0.9.1",
   "publisher": "cuovare",
   "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kynlos/cuovare-continued.git"
+  },
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -25,7 +29,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./out/src/extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -190,7 +194,7 @@
               "description": "Selected OpenAI model (e.g., gpt-4, gpt-3.5-turbo)"
             },
             "anthropic": {
-              "type": "string", 
+              "type": "string",
               "description": "Selected Anthropic model (e.g., claude-3-sonnet, claude-3-haiku)"
             },
             "groq": {
@@ -325,7 +329,7 @@
             "type": "string",
             "enum": [
               "api",
-              "database", 
+              "database",
               "debugging",
               "deployment",
               "package",
@@ -353,7 +357,7 @@
           "default": [
             "api",
             "database",
-            "debugging", 
+            "debugging",
             "deployment",
             "package",
             "performance",
@@ -389,7 +393,11 @@
               "items": {
                 "type": "string"
               },
-              "default": ["deployment", "database", "terminal"],
+              "default": [
+                "deployment",
+                "database",
+                "terminal"
+              ],
               "description": "Tools that require user confirmation before execution"
             },
             "blockedCommands": {
@@ -397,7 +405,12 @@
               "items": {
                 "type": "string"
               },
-              "default": ["rm -rf", "del /f", "format", "shutdown"],
+              "default": [
+                "rm -rf",
+                "del /f",
+                "format",
+                "shutdown"
+              ],
               "description": "Terminal commands that are blocked from execution"
             },
             "maxFileSize": {
@@ -434,7 +447,13 @@
           "items": {
             "type": "string"
           },
-          "default": ["node_modules/**", ".git/**", "dist/**", "build/**", "*.min.js"],
+          "default": [
+            "node_modules/**",
+            ".git/**",
+            "dist/**",
+            "build/**",
+            "*.min.js"
+          ],
           "markdownDescription": "**Exclude Patterns**\n\nFile patterns to exclude from context (glob patterns).",
           "order": 23
         },
@@ -448,7 +467,11 @@
         },
         "cuovare.ui.theme": {
           "type": "string",
-          "enum": ["auto", "light", "dark"],
+          "enum": [
+            "auto",
+            "light",
+            "dark"
+          ],
           "default": "auto",
           "markdownDescription": "**UI Theme**\n\nChoose the chat interface theme.",
           "order": 30
@@ -527,7 +550,10 @@
                 "description": "Automatically reconnect if the server disconnects"
               }
             },
-            "required": ["name", "command"]
+            "required": [
+              "name",
+              "command"
+            ]
           },
           "default": [],
           "order": 42
@@ -560,9 +586,12 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run compile",
+    "vscode:prepublish": "pnpm run esbuild-base -- --minify",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "esbuild-base": "node build.js",
+    "esbuild": "pnpm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "pnpm run esbuild-base -- --sourcemap --watch",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
@@ -603,6 +632,7 @@
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2",
     "bc": "^0.1.1",
+    "esbuild": "^0.25.5",
     "eslint": "^9.25.1",
     "glob": "^11.0.2",
     "mocha": "^11.5.0",

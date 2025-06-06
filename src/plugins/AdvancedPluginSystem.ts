@@ -157,7 +157,7 @@ export class AdvancedPluginSystem {
     private static instance: AdvancedPluginSystem;
     private registry: PluginRegistry;
     private pluginDirectories: string[] = [];
-    private apiContext: PluginAPIContext;
+    private apiContext!: PluginAPIContext;
     private eventEmitter: vscode.EventEmitter<PluginSystemEvent>;
     private securityManager: PluginSecurityManager;
     private dependencyResolver: PluginDependencyResolver;
@@ -282,7 +282,7 @@ export class AdvancedPluginSystem {
         } catch (error) {
             this.eventEmitter.fire({
                 type: 'plugin-install-failed',
-                data: { source, error: error.message }
+                data: { source, error: (error as Error).message }
             });
             throw error;
         }
@@ -321,7 +321,7 @@ export class AdvancedPluginSystem {
         } catch (error) {
             this.eventEmitter.fire({
                 type: 'plugin-uninstall-failed',
-                data: { pluginId, error: error.message }
+                data: { pluginId, error: (error as Error).message }
             });
             throw error;
         }
@@ -354,7 +354,7 @@ export class AdvancedPluginSystem {
         } catch (error) {
             this.eventEmitter.fire({
                 type: 'plugin-enable-failed',
-                data: { pluginId, error: error.message }
+                data: { pluginId, error: (error as Error).message }
             });
             throw error;
         }
@@ -387,7 +387,7 @@ export class AdvancedPluginSystem {
         } catch (error) {
             this.eventEmitter.fire({
                 type: 'plugin-disable-failed',
-                data: { pluginId, error: error.message }
+                data: { pluginId, error: (error as Error).message }
             });
             throw error;
         }
@@ -439,7 +439,7 @@ export class AdvancedPluginSystem {
             
             return result;
         } catch (error) {
-            plugin.errors.push(`Tool execution failed: ${error.message}`);
+            plugin.errors.push(`Tool execution failed: ${(error as Error).message}`);
             throw error;
         }
     }
@@ -606,7 +606,7 @@ export class AdvancedPluginSystem {
                 }
             };
         } catch (error) {
-            throw new Error(`Failed to create plugin instance: ${error.message}`);
+            throw new Error(`Failed to create plugin instance: ${(error as Error).message}`);
         }
     }
 
@@ -641,7 +641,7 @@ export class AdvancedPluginSystem {
                 data: { pluginId }
             });
         } catch (error) {
-            plugin.errors.push(`Activation failed: ${error.message}`);
+            plugin.errors.push(`Activation failed: ${(error as Error).message}`);
             throw error;
         }
     }
@@ -665,7 +665,7 @@ export class AdvancedPluginSystem {
                 data: { pluginId }
             });
         } catch (error) {
-            plugin.errors.push(`Deactivation failed: ${error.message}`);
+            plugin.errors.push(`Deactivation failed: ${(error as Error).message}`);
             throw error;
         }
     }
@@ -766,7 +766,7 @@ class PluginStorageImpl implements PluginStorage {
     }
     
     keys(): string[] {
-        return this.context.globalState.keys();
+        return [...this.context.globalState.keys()];
     }
 }
 

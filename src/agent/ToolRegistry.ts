@@ -83,7 +83,7 @@ export class ToolRegistry {
                         }
                     } catch (importError) {
                         // Check if this is a vscode dependency issue
-                        if (importError.message.includes('Cannot find module \'vscode\'')) {
+                        if ((importError as Error).message.includes('Cannot find module \'vscode\'')) {
                             vscodeMissingCount++;
                             // Skip vscode-dependent tools when not in VS Code environment
                             continue;
@@ -94,11 +94,11 @@ export class ToolRegistry {
                             delete require.cache[require.resolve(modulePath)];
                             module = require(modulePath);
                         } catch (requireError) {
-                            if (requireError.message.includes('Cannot find module \'vscode\'')) {
+                            if ((requireError as Error).message.includes('Cannot find module \'vscode\'')) {
                                 vscodeMissingCount++;
                                 continue;
                             }
-                            throw new Error(`Failed to load ${file}: ${importError.message} and ${requireError.message}`);
+                            throw new Error(`Failed to load ${file}: ${(importError as Error).message} and ${(requireError as Error).message}`);
                         }
                     }
                     

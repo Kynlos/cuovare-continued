@@ -21,6 +21,8 @@
 	"exclude": [
 		"node_modules",
 		"out",
-		"**/*.d.ts"
+		"**/*.d.ts",
+		"temp_disabled_tools/**/*",
+		"test/**/*"
 	]
 }

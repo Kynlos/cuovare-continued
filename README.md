@@ -6,7 +6,7 @@
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=cuovare.cuovare)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/Version-v0.9.1-success)](https://github.com/Kynlos/cuovare/releases)
+[![Version](https://img.shields.io/badge/Version-v0.9.1-success)](https://github.com/Kynlos/cuovare-continued/releases)
 [![Built with Amp](https://img.shields.io/badge/Built%20with-Amp-ff6b35)](https://ampcode.com)
 [![Build Time](https://img.shields.io/badge/Build%20Time-Under%2024h-brightgreen)](https://ampcode.com)
 [![Zero Manual Code](https://img.shields.io/badge/Manual%20Code-0%25-success)](https://ampcode.com)
@@ -914,14 +914,14 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
   - **[🔧 MCP Integration](docs/MCP_ENHANCED_GUIDE.md)** - External tool setup and configuration
   - **[📋 Changelog](docs/CHANGELOG.md)** - Version history and release notes
   - **[👩‍💻 Development Guide](docs/DEVELOPMENT.md)** - Contributing to Cuovare
-- **Issues**: [GitHub Issues](https://github.com/Kynlos/cuovare/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Kynlos/cuovare/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Kynlos/cuovare-continued/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Kynlos/cuovare-continued/discussions)
 
 ---
 
 <div align="center">
 
-**[⭐ Star us on GitHub](https://github.com/Kynlos/cuovare)** • **[📦 VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=cuovare.cuovare)** • **[📖 Documentation](docs/)**
+**[⭐ Star us on GitHub](https://github.com/Kynlos/cuovare-continued)** • **[📦 VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=cuovare.cuovare)** • **[📖 Documentation](docs/)**
 
 Made with ❤️ by the Cuovare team
 

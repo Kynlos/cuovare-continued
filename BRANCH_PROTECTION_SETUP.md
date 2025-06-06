@@ -6,7 +6,7 @@ Follow these steps to set up branch protection rules that require all tests to p
 
 ### 1. Navigate to Repository Settings
 
-1. Go to your repository: https://github.com/Kynlos/cuovare
+1. Go to your repository: https://github.com/Kynlos/cuovare-continued
 2. Click **Settings** tab
 3. Click **Branches** in the left sidebar
 

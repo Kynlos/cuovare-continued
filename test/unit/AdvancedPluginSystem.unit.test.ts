@@ -1,10 +1,25 @@
 import { AdvancedPluginSystem, PluginManifest, LoadedPlugin, PluginAPIContext } from '../../src/plugins/AdvancedPluginSystem';
 
+// Simple mock function factory
+function mockFn(returnValue?: any) {
+    const fn = function(...args: any[]) {
+        fn.mock.calls.push(args);
+        return returnValue;
+    } as any;
+    fn.mock = { calls: [], returnValue };
+    fn.mockResolvedValue = (value: any) => { fn.mock.returnValue = Promise.resolve(value); return fn; };
+    fn.mockRejectedValue = (value: any) => { fn.mock.returnValue = Promise.reject(value); return fn; };
+    fn.mockReturnValue = (value: any) => { fn.mock.returnValue = value; return fn; };
+    fn.mockImplementation = (impl: Function) => { Object.assign(fn, impl); return fn; };
+    fn.mockRestore = () => { fn.mock.calls = []; };
+    return fn;
+}
+
 // Mock VS Code
 const mockVSCode = {
     window: {
-        showInformationMessage: jest.fn(),
-        showErrorMessage: jest.fn()
+        showInformationMessage: mockFn(),
+        showErrorMessage: mockFn()
     },
     workspace: {
         workspaceFolders: [{
@@ -21,9 +36,9 @@ const mockContext = {
     globalStoragePath: '/test/storage',
     extensionPath: '/test/extension',
     globalState: {
-        get: jest.fn(),
-        update: jest.fn(),
-        keys: jest.fn(() => [])
+        get: mockFn(),
+        update: mockFn(),
+        keys: mockFn([])
     }
 };
 

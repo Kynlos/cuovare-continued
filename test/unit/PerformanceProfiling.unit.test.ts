@@ -262,7 +262,7 @@ test.describe('Execution Measurement', () => {
         assert.strictEqual(result.result, 'work completed', 'Should return result');
         
         const profile = await profiler.stopProfiling(profileId);
-        assert.ok(profile.metrics.length > 0, 'Should record metrics in profile');
+        assert.ok(profile && profile.metrics.length > 0, 'Should record metrics in profile');
     });
 });
 
@@ -481,11 +481,11 @@ test.describe('Optimization Recommendations', () => {
             assert.ok(rec.title, 'Each recommendation should have a title');
             assert.ok(rec.description, 'Each recommendation should have a description');
             assert.ok(['critical', 'warning'].includes(rec.category), 'Should have valid category');
-            assert.ok(['critical', 'high', 'medium', 'low'].includes(rec.priority), 'Should have valid priority');
+            assert.ok(['critical', 'high', 'medium', 'low'].includes(rec.priority as string), 'Should have valid priority');
             assert.ok(['high', 'medium', 'low'].includes(rec.impact), 'Should have valid impact');
             assert.ok(['high', 'medium', 'low'].includes(rec.effort), 'Should have valid effort');
             assert.ok(typeof rec.autoFixable === 'boolean', 'Should indicate if auto-fixable');
-            assert.ok(Array.isArray(rec.dependencies), 'Should have dependencies array');
+            assert.ok(Array.isArray((rec as any).dependencies), 'Should have dependencies array');
         }
     });
 
@@ -496,9 +496,9 @@ test.describe('Optimization Recommendations', () => {
         
         // Recommendations should be sorted by priority
         for (let i = 1; i < recommendations.length; i++) {
-            const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-            const prevPriority = priorityOrder[recommendations[i - 1].priority];
-            const currPriority = priorityOrder[recommendations[i].priority];
+            const priorityOrder: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
+            const prevPriority = priorityOrder[recommendations[i - 1].priority as string];
+            const currPriority = priorityOrder[recommendations[i].priority as string];
             assert.ok(prevPriority >= currPriority, 'Recommendations should be sorted by priority');
         }
     });

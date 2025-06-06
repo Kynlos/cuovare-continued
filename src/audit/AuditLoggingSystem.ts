@@ -336,8 +336,8 @@ export class AuditLoggingSystem {
                 details: {
                     success: true,
                     context: {
-                        version: this.config.enabled ? 'enabled' : 'disabled',
-                        environment: vscode.env.appName
+                        component: this.config.enabled ? 'enabled' : 'disabled',
+                        userAgent: vscode.env.appName
                     }
                 }
             });
